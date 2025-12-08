@@ -12,7 +12,7 @@ import pystray
 import logging
 
 # --- VERSION ---
-VERSION = "v0.9.0"
+VERSION = "v0.9.1"
 
 # --- CONFIGURATION ---
 CONFIG_FILE = 'config.json'
@@ -43,6 +43,7 @@ DEFAULT_CONFIG = {
 current_data = {}
 
 def update_sensor_loop():
+    """ Background thread: Polls hardware continuously to prevent request lag """
     while True:
         try:
             for sensor in sensor_list:
@@ -53,11 +54,13 @@ def update_sensor_loop():
 
 # --- HELPERS ---
 def get_resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
 def get_config_path():
+    """ Config is always stored next to the executable """
     if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
     else:
@@ -71,6 +74,7 @@ def load_config():
     try:
         with open(path, 'r') as f:
             cfg = json.load(f)
+            # Apply defaults for potentially missing keys in old configs
             if "show_advanced_colors" not in cfg: cfg["show_advanced_colors"] = False
             if "refresh_rate" not in cfg: cfg["refresh_rate"] = 1000
             if "card_size" not in cfg: cfg["card_size"] = "medium"
@@ -98,12 +102,12 @@ if getattr(sys, 'frozen', False):
 else:
     app = Flask(__name__)
 
+# Suppress Flask CLI logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 @app.route('/')
 def index():
-    # Pass VERSION to template here
     return render_template('dashboard.html', sensors=sensor_list, version=VERSION)
 
 @app.route('/api/data')
@@ -138,21 +142,25 @@ def run_tray_icon(url):
         pystray.MenuItem("Open Dashboard", on_open, default=True),
         pystray.MenuItem("Exit", on_exit)
     )
-    icon = pystray.Icon("Sidepanel", image, "Sidepanel Server", menu)
+    # Icon tooltip shows version
+    icon = pystray.Icon("Sidepanel", image, f"Sidepanel Server {VERSION}", menu)
     icon.run()
 
 if __name__ == '__main__':
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     dashboard_url = f"http://{local_ip}:5000"
-    print(f"Server running! Dashboard: {dashboard_url} (Version {VERSION})")
+    print(f"Server running! Dashboard: {dashboard_url} ({VERSION})")
 
+    # Start background polling
     polling_thread = threading.Thread(target=update_sensor_loop)
     polling_thread.daemon = True
     polling_thread.start()
 
+    # Start Flask server
     server_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False))
     server_thread.daemon = True
     server_thread.start()
 
+    # Start Tray Icon (Main thread)
     run_tray_icon(dashboard_url)

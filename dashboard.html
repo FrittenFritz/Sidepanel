@@ -64,7 +64,10 @@
         </h1>
         <div>
             <button id="settings-btn" onclick="openSettings();" class="p-2 rounded-full transition z-50 shadow-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
             </button>
         </div>
     </div>
@@ -230,6 +233,7 @@
     </div>
 
     <script>
+        // --- 1. GLOBAL VARIABLES ---
         let currentConfig = {};
         let updateTimer = null;
         let maxDataPoints = 60;
@@ -263,24 +267,30 @@
             }
         };
 
+        // --- GLOBAL RESIZE FUNCTION ---
         window.changeCardSize = function(event, id, delta) {
             if(event) event.stopPropagation();
 
             const el = document.querySelector(`[data-id="${id}"]`);
             if(!el) return;
 
+            // FIX: Check UNIVERSAL classes "col-span-X"
             let currentSpan = 1;
             for(let i=2; i<=6; i++) {
                 if(el.classList.contains(`col-span-${i}`)) currentSpan = i;
             }
 
             let newSpan = currentSpan + delta;
+            
+            // LIMITS
             if(newSpan < 1) newSpan = 1;
-            if(newSpan > 6) newSpan = 6; 
+            if(newSpan > 3) newSpan = 3; // MAX 3 COLUMNS
 
+            // Apply
             for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
             el.classList.add(`col-span-${newSpan}`);
 
+            // Update Config
             if (!currentConfig.custom_widths) currentConfig.custom_widths = {};
             currentConfig.custom_widths[id] = newSpan;
             
@@ -436,6 +446,7 @@
             currentConfig = await res.json();
             applyConfig(currentConfig);
             
+            // CHECK THE FLAG FOR EXPERT MODE
             if (currentConfig.show_advanced_colors) {
                 document.getElementById('advanced-settings-area').classList.remove('hidden');
             } else {
@@ -531,6 +542,7 @@
 
             applySize(cfg.card_size || 'medium');
             
+            // APPLY CUSTOM WIDTHS UNIVERSALLY
             if (cfg.custom_widths) {
                 for (const [id, span] of Object.entries(cfg.custom_widths)) {
                     const el = document.querySelector(`[data-id="${id}"]`);
@@ -541,7 +553,7 @@
                 }
             }
             
-            // ENSURE GRAPHS GET DEFAULT 2-COL (Universal)
+            // ENSURE GRAPHS GET DEFAULT 2-COL IF NOT SET (UNIVERSAL)
             ['graph-cpu', 'graph-gpu', 'graph-ram', 'graph-net'].forEach(id => {
                  if (!cfg.custom_widths || !cfg.custom_widths[id]) {
                      const el = document.querySelector(`[data-id="${id}"]`);
