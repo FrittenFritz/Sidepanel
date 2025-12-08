@@ -27,7 +27,7 @@
 1.  Download the latest `Sidepanel_v0.9.0.zip` from the **[Releases](../../releases)** page.
 2.  Extract the ZIP file.
 3.  Run `Sidepanel.exe` as **Administrator** (required to read hardware sensors).
-4.  Right-click the **Tray Icon** (chip symbol near the clock) and select **"Open Dashboard"** or enter 192.168.178.36:5000 in the Browser of your Device.
+4.  Right-click the **Tray Icon** and select **"Open Dashboard"** or enter 192.168.178.36:5000 in the Browser of your Device.
 
 ---
 
