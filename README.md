@@ -31,36 +31,21 @@
 
 ---
 
-## 🛠️ Development / Building from Source
+⚙️ Configuration
+Settings are saved automatically in config.json. You can enable Expert Mode for color customization by setting "show_advanced_colors": true in this file manually, or simply use the settings gear in the UI.
 
-If you want to modify the code or build it yourself, follow these steps.
+---
 
-### Requirements
-* **Python 3.12+**
-* **Windows** (due to hardware dependency)
+❤️ Acknowledgments & Special Thanks
+A huge thank you goes to the creators and contributors of LibreHardwareMonitor.
 
-### Setup
+This project relies on the LibreHardwareMonitorLib.dll to access low-level hardware sensors (temperatures, clock speeds, etc.). Without their incredible open-source work and this library, Sidepanel would not be possible.
 
-1.  Clone the repository:
-    ```bash
-    git clone [https://github.com/YOUR_USERNAME/Sidepanel.git](https://github.com/YOUR_USERNAME/Sidepanel.git)
-    cd Sidepanel
-    ```
+Please check out their repository if you are interested in how hardware monitoring works under the hood!
 
-2.  Install dependencies:
-    ```bash
-    pip install flask psutil pillow pystray pythonnet
-    ```
-    *(Note: You also need `pyinstaller` if you want to build the exe)*
+---
 
-3.  Run the application:
-    ```bash
-    python app.py
-    ```
+⚖️ License
+Sidepanel itself is open source. Feel free to fork and improve!
 
-### Building the Executable
-
-To create a standalone `.exe` file, use the following command:
-
-```bash
-python -m PyInstaller --noconfirm --onefile --windowed --uac-admin --icon="puls_chip.ico" --add-data "puls_chip.ico;." --add-data "LibreHardwareMonitorLib.dll;." --add-data "templates;templates" --add-data "LICENSE-3RD-PARTY.txt;." --name "Sidepanel" app.py
+This project includes the LibreHardwareMonitorLib.dll library, which is licensed under the Mozilla Public License 2.0 (MPL 2.0). The source code for the library is available at the link above. No changes were made to the library file itself. See LICENSE-3RD-PARTY.txt for the full license text.
