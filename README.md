@@ -37,6 +37,7 @@ Settings are saved automatically in config.json. You can enable Expert Mode for 
 ---
 
 ❤️ Acknowledgments & Special Thanks
+
 A huge thank you goes to the creators and contributors of LibreHardwareMonitor.
 
 This project relies on the LibreHardwareMonitorLib.dll to access low-level hardware sensors (temperatures, clock speeds, etc.). Without their incredible open-source work and this library, Sidepanel would not be possible.
