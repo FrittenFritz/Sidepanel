@@ -2,7 +2,7 @@
 
 **A lightweight, customizable hardware monitor dashboard designed for second screens.**
 
-![Sidepanel Icon](pulse_chip.ico)
+
 
 **Sidepanel** converts any device with a browser (Tablet, Smartphone, Laptop) into a dedicated hardware monitoring display for your PC. It is designed to be extremely resource-efficient, customizable, and bloat-free.
 
