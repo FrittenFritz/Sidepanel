@@ -199,3 +199,11 @@ sensor_list = [
     Sensor("ram", "RAM LOAD", "%", get_ram_data, "text-yellow-500"),
     Sensor("net", "NET I/O", "MB/s", get_net_speed, "text-blue-500"),
 ]
+
+def cleanup():
+    global computer
+    if computer:
+        try:
+            computer.Close()
+        except:
+            pass

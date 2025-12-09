@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request
-from hardware import sensor_list
+from hardware import sensor_list, cleanup
 import socket
 import json
 import os
@@ -12,7 +12,7 @@ import pystray
 import logging
 
 # --- VERSION ---
-VERSION = "v0.9.2"
+VERSION = "v0.9.2.1"
 
 # --- CONFIGURATION ---
 CONFIG_FILE = 'config.json'
@@ -137,6 +137,7 @@ def run_tray_icon(url):
         webbrowser.open(url)
     def on_exit(icon, item):
         icon.stop()
+        cleanup()  # <--- IMPORTANT: Disconnects hardware here
         os._exit(0)
 
     image_path = get_resource_path("pulse_chip.ico")
