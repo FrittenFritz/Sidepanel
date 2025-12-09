@@ -49,4 +49,4 @@ Please check out their repository if you are interested in how hardware monitori
 ⚖️ License
 Sidepanel itself is open source. Feel free to fork and improve!
 
-This project includes the LibreHardwareMonitorLib.dll library, which is licensed under the Mozilla Public License 2.0 (MPL 2.0). The source code for the library is available at the link above. No changes were made to the library file itself. See license.txt for the full license text.
+This project includes the LibreHardwareMonitorLib.dll and HidSharp.dll library, which is licensed under the Mozilla Public License 2.0 (MPL 2.0). The source code for the librarys is available at the link above. No changes were made to the library files itself. See license.txt for the full license text.
