@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sidepanel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #1c1c1c; 
+            --bg-card: #262626;
+            --text-title: #dedede; 
+            --text-button: #dedede; 
+            --text-primary: #dedede; 
+            --text-secondary: #dedede;
+        }
+        body { background-color: var(--bg-body); color: var(--text-primary); transition: background 0.3s; }
+        .card { background-color: var(--bg-card); transition: background 0.3s; touch-action: none; overflow: hidden; }
+        .text-sec { color: var(--text-secondary); }
+        .card span { transition: none; } 
+        
+        #main-title { color: var(--text-title); transition: color 0.3s; }
+        
+        #settings-btn { 
+            color: var(--text-button); 
+            transition: color 0.3s, background 0.3s; 
+            background-color: rgba(255,255,255,0.05);
+        }
+        #settings-btn:hover { background-color: rgba(255,255,255,0.15); }
+
+        #settings-modal { display: none; background: rgba(0,0,0,0.8); }
+        input[type="color"] { border: none; width: 40px; height: 40px; cursor: pointer; background: none; }
+        select { background-color: #334155; color: white; border: 1px solid #475569; padding: 5px; border-radius: 5px; width: 100%; }
+        
+        .drag-handle { cursor: grab; transition: background 0.2s; }
+        .drag-handle:active { cursor: grabbing; background-color: rgba(255,255,255,0.1); }
+        
+        .resize-handle { cursor: col-resize; transition: background 0.2s; touch-action: none; user-select: none; }
+        .resize-handle:active { background-color: rgba(255,255,255,0.2); }
+        
+        .size-btn { 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            border: none; outline: none; background: transparent; 
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .size-btn:active { background-color: rgba(255,255,255,0.2); }
+        .size-btn:hover { background-color: rgba(255,255,255,0.1); color: white; }
+
+        .content-area { cursor: default; min-width: 0; }
+        [data-clickable="true"] .content-area { cursor: pointer; }
+        .content-area:active { opacity: 0.95; }
+        .divider { height: 2px; background: linear-gradient(90deg, transparent, var(--text-secondary), transparent); opacity: 0.3; margin: 2rem 0; }
+    </style>
+</head>
+<body class="p-4 md:p-6 select-none opacity-0 transition-opacity duration-300" id="body-content"> 
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 id="main-title" class="text-2xl md:text-3xl font-bold uppercase tracking-widest flex items-baseline">
+            Sidepanel 
+            <span class="ml-3 text-sm font-normal opacity-50">{{ version }}</span>
+        </h1>
+        <div>
+            <button id="settings-btn" onclick="openSettings();" class="p-2 rounded-full transition z-50 shadow-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.35a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="grid-container" class="grid gap-4 md:gap-6">
+        {% for sensor in sensors %}
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group" 
+             data-id="{{ sensor.key }}" data-type="{{ sensor.key }}"
+             {% if sensor.key == 'ram' or sensor.key == 'gpu' %}data-clickable="true"{% endif %}>
+            
+            <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40">
+                <div class="text-xl">⣿</div>
+            </div>
+
+            <div class="content-area flex-1 flex flex-col justify-between p-4" onclick="toggleSensorMode('{{ sensor.key }}')">
+                <div class="flex justify-between items-start w-full">
+                    <h2 id="title-{{ sensor.key }}" data-key="{{ sensor.key }}" class="text-sec uppercase tracking-wider font-bold truncate">{{ sensor.default_title }}</h2>
+                </div>
+                <div class="flex items-end mt-2 md:mt-4 relative">
+                    <span id="val-{{ sensor.key }}" class="font-bold" style="color: gray;">--</span>
+                    <span id="unit-{{ sensor.key }}" class="text-sec ml-2 mb-1 md:mb-2">{{ sensor.unit }}</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" 
+                     onclick="changeCardSize(event, '{{ sensor.key }}', 1)" title="Expand">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" 
+                     onclick="changeCardSize(event, '{{ sensor.key }}', -1)" title="Shrink">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="graph-container" class="grid gap-4 md:gap-6">
+        
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-cpu">
+            <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
+            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden">
+                <h2 class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_cpu">CPU LOAD %</h2>
+                <div class="relative w-full h-full flex-1"><canvas id="chart-cpu"></canvas></div>
+            </div>
+            <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', 1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', -1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-gpu" data-clickable="true">
+            <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
+            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden" onclick="toggleGraphMode('gpu')">
+                <h2 id="title-graph-gpu" class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_gpu_load">GPU LOAD %</h2>
+                <div class="relative w-full h-full flex-1"><canvas id="chart-gpu"></canvas></div>
+            </div>
+            <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', 1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', -1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-ram" data-clickable="true">
+            <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
+            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden" onclick="toggleGraphMode('ram')">
+                <h2 id="title-graph-ram" class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_ram_load">RAM LOAD %</h2>
+                <div class="relative w-full h-full flex-1"><canvas id="chart-ram"></canvas></div>
+            </div>
+            <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-ram', 1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-ram', -1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-net" data-clickable="true">
+            <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
+            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden" onclick="toggleNetScale()">
+                <h2 id="title-graph-net" class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_net">NET I/O HISTORY</h2>
+                <div class="relative w-full h-full flex-1"><canvas id="chart-net"></canvas></div>
+            </div>
+            <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-net', 1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-net', -1)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl w-full max-w-md border border-slate-600 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 translate" data-t="settings_title">Settings</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="language">Language</label>
+                <select id="input-language">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="card_size">Card Size</label>
+                <select id="input-card-size">
+                    <option value="tiny" class="translate" data-t="size_tiny">Tiny (6 Cols)</option>
+                    <option value="small" class="translate" data-t="size_small">Small (4 Cols)</option>
+                    <option value="medium" class="translate" data-t="size_medium">Medium (3 Cols)</option>
+                    <option value="large" class="translate" data-t="size_large">Large (2 Cols)</option>
+                </select>
+            </div>
+
+            <div class="mb-6 border-b border-slate-700 pb-4">
+                <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="refresh_rate">Refresh Rate</label>
+                <select id="input-refresh-rate">
+                    <option value="500" data-t="rate_500">500ms (Fast)</option>
+                    <option value="1000" data-t="rate_1000">1000ms (Standard)</option>
+                    <option value="2000" data-t="rate_2000">2000ms (Slow)</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1 translate" data-t="reload_hint">Page will reload after saving.</p>
+            </div>
+
+            <div id="advanced-settings-area" class="hidden">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_bg">Background</label><input type="color" id="input-bg-body" onchange="previewColor()"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_card">Card Color</label><input type="color" id="input-bg-card" onchange="previewColor()"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_title">Title Color</label><input type="color" id="input-text-title" onchange="previewColor()"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_btn">Button Color</label><input type="color" id="input-text-button" onchange="previewColor()"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_text">Main Text</label><input type="color" id="input-text-primary" onchange="previewColor()"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_sub">Sub Text</label><input type="color" id="input-text-secondary" onchange="previewColor()"></div>
+                </div>
+                <h3 class="text-sm font-bold mb-2 text-gray-400 translate" data-t="col_sensors">Sensor Colors</h3>
+                <div class="grid grid-cols-4 gap-2 mb-6">
+                    <input type="color" id="input-accent-cpu" onchange="previewColor()">
+                    <input type="color" id="input-accent-gpu" onchange="previewColor()">
+                    <input type="color" id="input-accent-ram" onchange="previewColor()">
+                    <input type="color" id="input-accent-net" onchange="previewColor()">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeSettings()" class="px-4 py-2 rounded text-gray-300 hover:text-white translate" data-t="btn_cancel">Cancel</button>
+                <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 font-bold translate" data-t="btn_save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. GLOBAL VARIABLES ---
+        let currentConfig = {};
+        let updateTimer = null;
+        let maxDataPoints = 60;
+        const charts = {};
+        const history = { cpu: [], gpu_core: [], gpu_vram: [], ram_percent: [], ram_gb: [], net: [] };
+
+        const TRANSLATIONS = {
+            en: {
+                cpu: "CPU LOAD", cpu_temp: "CPU TEMP", gpu: "GPU LOAD", gpu_temp: "GPU TEMP", ram: "RAM LOAD", net: "NET I/O",
+                gpu_vram: "VRAM USAGE", ram_usage: "RAM USAGE",
+                graph_cpu: "CPU LOAD %", graph_gpu_load: "GPU LOAD %", graph_gpu_vram: "VRAM HISTORY (GB)",
+                graph_ram_load: "RAM LOAD %", graph_ram_gb: "RAM HISTORY (GB)", graph_net: "NET I/O HISTORY",
+                settings_title: "Settings", language: "Language", card_size: "Card Size", refresh_rate: "Refresh Rate",
+                reload_hint: "Page will reload after saving.",
+                size_tiny: "Tiny", size_small: "Small", size_medium: "Medium", size_large: "Large",
+                rate_500: "500ms (Fast)", rate_1000: "1000ms (Standard)", rate_2000: "2000ms (Slow)",
+                col_bg: "Background", col_card: "Card Color", col_title: "Title Color", col_btn: "Button Color", col_text: "Main Text", col_sub: "Sub Text", col_sensors: "Sensor Colors",
+                btn_cancel: "Cancel", btn_save: "Save"
+            },
+            de: {
+                cpu: "CPU AUSLASTUNG", cpu_temp: "CPU TEMP", gpu: "GPU AUSLASTUNG", gpu_temp: "GPU TEMP", ram: "RAM AUSLASTUNG", net: "NETZWERK I/O",
+                gpu_vram: "VRAM VERBRAUCH", ram_usage: "RAM VERBRAUCH",
+                graph_cpu: "CPU AUSLASTUNG %", graph_gpu_load: "GPU AUSLASTUNG %", graph_gpu_vram: "VRAM VERLAUF (GB)",
+                graph_ram_load: "RAM AUSLASTUNG %", graph_ram_gb: "RAM VERLAUF (GB)", graph_net: "NETZWERK VERLAUF",
+                settings_title: "Einstellungen", language: "Sprache", card_size: "Kartengröße", refresh_rate: "Aktualisierungsrate",
+                reload_hint: "Seite lädt nach Speichern neu.",
+                size_tiny: "Winzig", size_small: "Klein", size_medium: "Mittel", size_large: "Groß",
+                rate_500: "500ms (Schnell)", rate_1000: "1000ms (Standard)", rate_2000: "2000ms (Langsam)",
+                col_bg: "Hintergrund", col_card: "Karten Farbe", col_title: "Titel Farbe", col_btn: "Knopf Farbe", col_text: "Text Haupt", col_sub: "Text Neben", col_sensors: "Sensor Farben",
+                btn_cancel: "Abbrechen", btn_save: "Speichern"
+            }
+        };
+
+        // --- GLOBAL RESIZE FUNCTION ---
+        window.changeCardSize = function(event, id, delta) {
+            if(event) event.stopPropagation();
+
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if(!el) return;
+
+            // FIX: Check UNIVERSAL classes "col-span-X"
+            let currentSpan = 1;
+            for(let i=2; i<=6; i++) {
+                if(el.classList.contains(`col-span-${i}`)) currentSpan = i;
+            }
+
+            let newSpan = currentSpan + delta;
+            
+            // LIMITS
+            if(newSpan < 1) newSpan = 1;
+            if(newSpan > 3) newSpan = 3; // MAX 3 COLUMNS
+
+            // Apply
+            for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
+            el.classList.add(`col-span-${newSpan}`);
+
+            // Update Config
+            if (!currentConfig.custom_widths) currentConfig.custom_widths = {};
+            currentConfig.custom_widths[id] = newSpan;
+            
+            fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
+
+            if(id.startsWith('graph-')) {
+                const key = id.replace('graph-', '');
+                if(charts[key]) setTimeout(() => charts[key].resize(), 50);
+            }
+        }
+
+        new Sortable(document.getElementById('grid-container'), { animation: 150, handle: '.drag-handle', ghostClass: 'opacity-50', onEnd: () => saveOrder() });
+        new Sortable(document.getElementById('graph-container'), { animation: 150, handle: '.drag-handle', ghostClass: 'opacity-50', onEnd: () => saveOrder() });
+
+        function initChart(canvasId, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ data: [], borderColor: color, backgroundColor: color + '20', borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4 }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, animation: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { display: false }, 
+                        y: { beginAtZero: true, grid: { color: '#ffffff10' }, ticks: { color: '#94a3b8', font: { size: 14, weight: 'bold' } } } 
+                    } 
+                }
+            });
+        }
+
+        function updateSpanClass(el, span) {
+            for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
+            el.classList.add(`col-span-${span}`);
+        }
+
+        async function saveConfigOnly() {
+            await fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
+        }
+
+        function getTrans(key) {
+            const lang = currentConfig.language || 'en';
+            return TRANSLATIONS[lang][key] || key;
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('.translate').forEach(el => { const key = el.getAttribute('data-t'); if (key) el.innerText = getTrans(key); });
+            document.querySelectorAll('option[data-t]').forEach(el => { const key = el.getAttribute('data-t'); if (key) el.innerText = getTrans(key); });
+            const lang = currentConfig.language || 'en';
+            document.querySelectorAll('[id^="title-"]').forEach(el => { const key = el.getAttribute('data-key'); if (key && TRANSLATIONS[lang][key]) el.innerText = TRANSLATIONS[lang][key]; });
+            updateGraphTitles();
+        }
+
+        function updateGraphTitles() {
+            const lang = currentConfig.language || 'en';
+            const gpuMode = document.getElementById('chart-gpu').dataset.mode || 'std';
+            const gpuKey = gpuMode === 'alt' ? 'graph_gpu_vram' : 'graph_gpu_load';
+            document.getElementById('title-graph-gpu').innerText = TRANSLATIONS[lang][gpuKey];
+            const ramMode = document.getElementById('chart-ram').dataset.mode || 'std';
+            const ramKey = ramMode === 'alt' ? 'graph_ram_gb' : 'graph_ram_load';
+            document.getElementById('title-graph-ram').innerText = TRANSLATIONS[lang][ramKey];
+            document.querySelector('[data-t="graph_cpu"]').innerText = TRANSLATIONS[lang]['graph_cpu'];
+            document.querySelector('[data-t="graph_net"]').innerText = TRANSLATIONS[lang]['graph_net'];
+        }
+
+        function toggleSensorMode(key) {
+            if (key !== 'ram' && key !== 'gpu') return;
+            const el = document.getElementById(`val-${key}`);
+            const unit = document.getElementById(`unit-${key}`);
+            const title = document.getElementById(`title-${key}`);
+            if (!el || !unit) return;
+            const lang = currentConfig.language || 'en';
+            if (el.dataset.mode === 'alt') {
+                el.dataset.mode = 'std';
+                el.innerText = el.dataset.valStd || '--';
+                unit.innerText = '%';
+                if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu'];
+                if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram'];
+            } else {
+                el.dataset.mode = 'alt';
+                el.innerText = el.dataset.valAlt || '--';
+                unit.innerText = 'GB';
+                if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
+                if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
+            }
+        }
+
+        function toggleGraphMode(key) {
+            const chart = charts[key];
+            if (!chart) return;
+            const canvas = document.getElementById(`chart-${key}`);
+            
+            // Toggle Logic
+            if (canvas.dataset.mode === 'alt') {
+                canvas.dataset.mode = 'std';
+                // Switch back to Standard (%) -> Fix Scale to 100
+                chart.options.scales.y.max = 100;
+            } else {
+                canvas.dataset.mode = 'alt';
+                // Switch to Alt (GB/VRAM) -> Dynamic Scale (remove max)
+                delete chart.options.scales.y.max;
+            }
+            
+            updateGraphTitles();
+            updateCharts(); // Update immediately to prevent visual glitches
+        }
+
+        function toggleNetScale() {
+            const chart = charts.net;
+            if (!chart) return;
+            
+            // Cycle: 100 -> 20 -> 40 -> 60 -> 80 -> 100
+            let currentMax = chart.options.scales.y.max || 100;
+            let newMax = 100;
+
+            if (currentMax === 100) newMax = 20;
+            else if (currentMax === 20) newMax = 40;
+            else if (currentMax === 40) newMax = 60;
+            else if (currentMax === 60) newMax = 80;
+            else newMax = 100;
+
+            chart.options.scales.y.max = newMax;
+            // Force exactly 5 ticks (dividing by 4 gives us: 0, 25%, 50%, 75%, 100%)
+            chart.options.scales.y.ticks.stepSize = newMax / 4;
+            
+            chart.update();
+
+            // Update Title Text
+            const lang = currentConfig.language || 'en';
+            const baseTitle = TRANSLATIONS[lang]['graph_net'];
+            document.getElementById('title-graph-net').innerText = `${baseTitle} (MAX ${newMax} MB/s)`;
+        }
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                for (const [key, value] of Object.entries(data)) {
+                    const el = document.getElementById(`val-${key}`);
+                    if (!el) continue;
+                    if (key === 'ram' || key === 'gpu') {
+                        let valStd = 0, valAlt = 0;
+                        if (typeof value === 'object') {
+                             if (key === 'ram') { valStd = value.percent; valAlt = value.gb; } 
+                             else if (key === 'gpu') { valStd = value.core; valAlt = value.vram_gb; }
+                        } else { valStd = value; }
+                        el.dataset.valStd = valStd; el.dataset.valAlt = valAlt;
+                        if (!el.dataset.mode) el.dataset.mode = 'std';
+                        if (el.dataset.mode === 'alt') el.innerText = valAlt; else el.innerText = valStd;
+                        if (key === 'ram') { pushHistory('ram_percent', valStd); pushHistory('ram_gb', valAlt); }
+                        if (key === 'gpu') { pushHistory('gpu_core', valStd); pushHistory('gpu_vram', valAlt); }
+                    } else {
+                        el.innerText = value;
+                        if (key === 'cpu') pushHistory('cpu', value);
+                        if (key === 'net') pushHistory('net', value);
+                    }
+                }
+                updateCharts();
+            } catch (e) { console.error(e); }
+        }
+
+        function pushHistory(key, val) {
+            history[key].push(val);
+            if (history[key].length > maxDataPoints) history[key].shift();
+        }
+
+        function updateCharts() {
+            if (charts.cpu) { charts.cpu.data.labels = new Array(history.cpu.length).fill(''); charts.cpu.data.datasets[0].data = history.cpu; charts.cpu.update(); }
+            if (charts.gpu) {
+                const mode = document.getElementById('chart-gpu').dataset.mode || 'std';
+                charts.gpu.data.labels = new Array((mode === 'alt' ? history.gpu_vram : history.gpu_core).length).fill('');
+                charts.gpu.data.datasets[0].data = mode === 'alt' ? history.gpu_vram : history.gpu_core;
+                charts.gpu.update();
+            }
+            if (charts.ram) {
+                const mode = document.getElementById('chart-ram').dataset.mode || 'std';
+                charts.ram.data.labels = new Array((mode === 'alt' ? history.ram_gb : history.ram_percent).length).fill('');
+                charts.ram.data.datasets[0].data = mode === 'alt' ? history.ram_gb : history.ram_percent;
+                charts.ram.update();
+            }
+            if (charts.net) { charts.net.data.labels = new Array(history.net.length).fill(''); charts.net.data.datasets[0].data = history.net; charts.net.update(); }
+        }
+
+        function startTimer(interval) {
+            if (updateTimer) clearInterval(updateTimer);
+            updateTimer = setInterval(updateDashboard, interval);
+            maxDataPoints = 60000 / interval;
+        }
+
+        async function loadSettings() {
+            const res = await fetch('/api/settings');
+            currentConfig = await res.json();
+            applyConfig(currentConfig);
+            
+            // CHECK THE FLAG FOR EXPERT MODE
+            if (currentConfig.show_advanced_colors) {
+                document.getElementById('advanced-settings-area').classList.remove('hidden');
+            } else {
+                document.getElementById('advanced-settings-area').classList.add('hidden');
+            }
+            
+            document.getElementById('body-content').classList.remove('opacity-0');
+        }
+
+        function applySize(size) {
+            const grid1 = document.getElementById('grid-container');
+            const grid2 = document.getElementById('graph-container');
+            const cards = document.querySelectorAll('.card .content-area');
+            const values = document.querySelectorAll('[id^="val-"]');
+            const titles = document.querySelectorAll('[id^="title-"]');
+            
+            // IMPORTANT: Remove ALL existing col-span classes (LG and Universal)
+            document.querySelectorAll('.card').forEach(c => {
+               for(let i=1; i<=6; i++) {
+                   c.classList.remove(`col-span-${i}`);
+                   c.classList.remove(`lg:col-span-${i}`);
+               }
+            });
+
+            grid1.className = 'grid gap-4 md:gap-6';
+            grid2.className = 'grid gap-4 md:gap-6';
+
+            if(size === 'tiny') { 
+                grid1.classList.add('grid-cols-2', 'md:grid-cols-4', 'lg:grid-cols-6'); 
+                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
+            }
+            else if(size === 'small') { 
+                grid1.classList.add('grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4'); 
+                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
+            }
+            else if(size === 'medium') { 
+                grid1.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3'); 
+                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
+            }
+            else { 
+                grid1.classList.add('grid-cols-1', 'md:grid-cols-2'); 
+                grid2.classList.add('grid-cols-1', 'lg:grid-cols-2'); 
+            }
+
+            cards.forEach(c => {
+                const parent = c.parentElement;
+                parent.classList.remove('min-h-[80px]', 'min-h-[100px]', 'min-h-[140px]', 'min-h-[180px]', 'min-h-[150px]', 'min-h-[200px]', 'min-h-[250px]');
+                c.classList.remove('p-2', 'p-3', 'p-4', 'p-6', 'p-8');
+
+                if (parent.classList.contains('graph-card')) {
+                    if(size === 'tiny') { parent.classList.add('min-h-[150px]'); c.classList.add('p-2'); }
+                    else if(size === 'small') { parent.classList.add('min-h-[150px]'); c.classList.add('p-3'); }
+                    else if(size === 'medium') { parent.classList.add('min-h-[200px]'); c.classList.add('p-4'); }
+                    else { parent.classList.add('min-h-[250px]'); c.classList.add('p-6'); }
+                } else {
+                    if(size === 'tiny') { parent.classList.add('min-h-[80px]'); c.classList.add('p-2'); }
+                    else if(size === 'small') { parent.classList.add('min-h-[100px]'); c.classList.add('p-3'); }
+                    else if(size === 'medium') { parent.classList.add('min-h-[140px]'); c.classList.add('p-6'); }
+                    else { parent.classList.add('min-h-[180px]'); c.classList.add('p-8'); }
+                }
+            });
+
+            values.forEach(v => {
+                v.className = "font-bold"; 
+                if(size === 'tiny') v.classList.add('text-2xl');
+                else if(size === 'small') v.classList.add('text-3xl');
+                else if(size === 'medium') v.classList.add('text-4xl', 'md:text-5xl');
+                else v.classList.add('text-6xl');
+            });
+
+            titles.forEach(t => {
+                t.classList.remove('text-[10px]', 'text-xs', 'text-sm', 'text-base');
+                if(size === 'tiny') t.classList.add('text-[10px]');
+                else if(size === 'small') t.classList.add('text-xs');
+                else if(size === 'medium') t.classList.add('text-xs', 'md:text-sm');
+                else t.classList.add('text-base');
+            });
+        }
+
+        function applyConfig(cfg) {
+            const root = document.documentElement.style;
+            const c = cfg.colors;
+            root.setProperty('--bg-body', c.bg_body); root.setProperty('--bg-card', c.bg_card);
+            root.setProperty('--text-title', c.text_title || '#38bdf8'); root.setProperty('--text-button', c.text_button || '#dedede'); 
+            root.setProperty('--text-primary', c.text_primary); root.setProperty('--text-secondary', c.text_secondary);
+            
+            if(document.getElementById('val-cpu')) document.getElementById('val-cpu').style.color = c.accent_cpu;
+            if(document.getElementById('val-cpu_temp')) document.getElementById('val-cpu_temp').style.color = c.accent_cpu;
+            if(document.getElementById('val-gpu')) document.getElementById('val-gpu').style.color = c.accent_gpu;
+            if(document.getElementById('val-gpu_temp')) document.getElementById('val-gpu_temp').style.color = c.accent_gpu;
+            if(document.getElementById('val-ram')) document.getElementById('val-ram').style.color = c.accent_ram;
+            if(document.getElementById('val-net')) document.getElementById('val-net').style.color = c.accent_net;
+
+            applySize(cfg.card_size || 'medium');
+            
+            // APPLY CUSTOM WIDTHS UNIVERSALLY
+            if (cfg.custom_widths) {
+                for (const [id, span] of Object.entries(cfg.custom_widths)) {
+                    const el = document.querySelector(`[data-id="${id}"]`);
+                    if (el) {
+                        for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
+                        el.classList.add(`col-span-${span}`);
+                    }
+                }
+            }
+            
+            // ENSURE GRAPHS GET DEFAULT 2-COL IF NOT SET (UNIVERSAL)
+            ['graph-cpu', 'graph-gpu', 'graph-ram', 'graph-net'].forEach(id => {
+                 if (!cfg.custom_widths || !cfg.custom_widths[id]) {
+                     const el = document.querySelector(`[data-id="${id}"]`);
+                     if(el) el.classList.add('col-span-2');
+                 }
+            });
+
+            applyTranslations(); 
+
+            if (!charts.cpu) charts.cpu = initChart('chart-cpu', c.accent_cpu); else { charts.cpu.data.datasets[0].borderColor = c.accent_cpu; charts.cpu.data.datasets[0].backgroundColor = c.accent_cpu + '20'; }
+            if (!charts.gpu) charts.gpu = initChart('chart-gpu', c.accent_gpu); else { charts.gpu.data.datasets[0].borderColor = c.accent_gpu; charts.gpu.data.datasets[0].backgroundColor = c.accent_gpu + '20'; }
+            if (!charts.ram) charts.ram = initChart('chart-ram', c.accent_ram); else { charts.ram.data.datasets[0].borderColor = c.accent_ram; charts.ram.data.datasets[0].backgroundColor = c.accent_ram + '20'; }
+            if (!charts.net) charts.net = initChart('chart-net', c.accent_net); else { charts.net.data.datasets[0].borderColor = c.accent_net; charts.net.data.datasets[0].backgroundColor = c.accent_net + '20'; }
+
+// --- NEW: FORCE SCALES (v0.9.2) ---
+            // CPU is always % -> Max 100
+            if (charts.cpu) charts.cpu.options.scales.y.max = 100;
+
+            // GPU & RAM defaults to % -> Max 100 (unless mode is already alt)
+            if (charts.gpu) {
+                const mode = document.getElementById('chart-gpu').dataset.mode;
+                charts.gpu.options.scales.y.max = (mode === 'alt') ? null : 100;
+            }
+            if (charts.ram) {
+                const mode = document.getElementById('chart-ram').dataset.mode;
+                charts.ram.options.scales.y.max = (mode === 'alt') ? null : 100;
+            }
+
+            // NET defaults to 100 MB/s fixed scale with 5 ticks (step 25)
+            if (charts.net) {
+                if (!charts.net.options.scales.y.max) {
+                    charts.net.options.scales.y.max = 100;
+                    charts.net.options.scales.y.ticks.stepSize = 25;
+                }
+                
+                // Update Title on Load
+                const lang = currentConfig.language || 'en';
+                const baseTitle = TRANSLATIONS[lang]['graph_net'];
+                const currentMax = charts.net.options.scales.y.max;
+                const titleEl = document.getElementById('title-graph-net');
+                if(titleEl) titleEl.innerText = `${baseTitle} (MAX ${currentMax} MB/s)`;
+            }
+            
+            // Apply changes
+            Object.values(charts).forEach(c => c.update());
+            // ----------------------------------
+
+            const grid1 = document.getElementById('grid-container');
+            const grid2 = document.getElementById('graph-container');
+            if (cfg.order && cfg.order.length > 0) cfg.order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid1) grid1.appendChild(el); });
+            if (cfg.graph_order && cfg.graph_order.length > 0) cfg.graph_order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid2) grid2.appendChild(el); });
+
+            const rate = cfg.refresh_rate || 1000;
+            startTimer(rate);
+        }
+
+        function openSettings() { 
+            document.getElementById('settings-modal').style.display = 'flex';
+            document.getElementById('input-refresh-rate').value = currentConfig.refresh_rate || 1000;
+            document.getElementById('input-card-size').value = currentConfig.card_size || 'medium';
+            document.getElementById('input-language').value = currentConfig.language || 'en';
+            
+            if (currentConfig.show_advanced_colors) {
+                document.getElementById('advanced-settings-area').classList.remove('hidden');
+            } else {
+                document.getElementById('advanced-settings-area').classList.add('hidden');
+            }
+
+            if (currentConfig.colors) {
+                document.getElementById('input-bg-body').value = currentConfig.colors.bg_body || '#0f172a';
+                document.getElementById('input-bg-card').value = currentConfig.colors.bg_card || '#1e293b';
+                document.getElementById('input-text-title').value = currentConfig.colors.text_title || '#38bdf8';
+                document.getElementById('input-text-button').value = currentConfig.colors.text_button || '#dedede'; 
+                document.getElementById('input-text-primary').value = currentConfig.colors.text_primary || '#ffffff';
+                document.getElementById('input-text-secondary').value = currentConfig.colors.text_secondary || '#94a3b8';
+                
+                document.getElementById('input-accent-cpu').value = currentConfig.colors.accent_cpu || '#ef4444';
+                document.getElementById('input-accent-gpu').value = currentConfig.colors.accent_gpu || '#22c55e';
+                document.getElementById('input-accent-ram').value = currentConfig.colors.accent_ram || '#eab308';
+                document.getElementById('input-accent-net').value = currentConfig.colors.accent_net || '#3b82f6';
+            }
+        }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; applyConfig(currentConfig); }
+        function previewColor() { 
+            const root = document.documentElement.style;
+            root.setProperty('--bg-body', document.getElementById('input-bg-body').value);
+            root.setProperty('--bg-card', document.getElementById('input-bg-card').value);
+            root.setProperty('--text-title', document.getElementById('input-text-title').value);
+            root.setProperty('--text-button', document.getElementById('input-text-button').value); 
+            root.setProperty('--text-primary', document.getElementById('input-text-primary').value);
+            root.setProperty('--text-secondary', document.getElementById('input-text-secondary').value);
+        }
+        async function saveSettings() {
+            currentConfig.refresh_rate = parseInt(document.getElementById('input-refresh-rate').value);
+            currentConfig.card_size = document.getElementById('input-card-size').value;
+            currentConfig.language = document.getElementById('input-language').value;
+            
+            // Only save colors if the advanced section is visible (optional safety, but saving always is fine)
+            currentConfig.colors.bg_body = document.getElementById('input-bg-body').value;
+            currentConfig.colors.bg_card = document.getElementById('input-bg-card').value;
+            currentConfig.colors.text_title = document.getElementById('input-text-title').value;
+            currentConfig.colors.text_button = document.getElementById('input-text-button').value; 
+            currentConfig.colors.text_primary = document.getElementById('input-text-primary').value;
+            currentConfig.colors.text_secondary = document.getElementById('input-text-secondary').value;
+            currentConfig.colors.accent_cpu = document.getElementById('input-accent-cpu').value;
+            currentConfig.colors.accent_gpu = document.getElementById('input-accent-gpu').value;
+            currentConfig.colors.accent_ram = document.getElementById('input-accent-ram').value;
+            currentConfig.colors.accent_net = document.getElementById('input-accent-net').value;
+            
+            await fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
+            location.reload(); 
+        }
+        async function saveOrder() {
+            const grid1 = document.getElementById('grid-container');
+            const grid2 = document.getElementById('graph-container');
+            currentConfig.order = Array.from(grid1.children).map(child => child.getAttribute('data-id'));
+            currentConfig.graph_order = Array.from(grid2.children).map(child => child.getAttribute('data-id'));
+            await fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
+        }
+        loadSettings();
+    </script>
+</body>
+</html>

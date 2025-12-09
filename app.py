@@ -12,7 +12,7 @@ import pystray
 import logging
 
 # --- VERSION ---
-VERSION = "v0.9.1"
+VERSION = "v0.9.2"
 
 # --- CONFIGURATION ---
 CONFIG_FILE = 'config.json'
@@ -70,7 +70,14 @@ def get_config_path():
 def load_config():
     path = get_config_path()
     if not os.path.exists(path):
+        # FIX: If file is missing, create it immediately with default values
+        try:
+            with open(path, 'w') as f:
+                json.dump(DEFAULT_CONFIG, f, indent=4)
+        except Exception as e:
+            print(f"Error creating config file: {e}")
         return DEFAULT_CONFIG
+        
     try:
         with open(path, 'r') as f:
             cfg = json.load(f)

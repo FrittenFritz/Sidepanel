@@ -1,0 +1,36 @@
+{
+    "card_size": "small",
+    "colors": {
+        "accent_cpu": "#ef4444",
+        "accent_gpu": "#22c55e",
+        "accent_net": "#3b82f6",
+        "accent_ram": "#eab308",
+        "bg_body": "#1c1c1c",
+        "bg_card": "#262626",
+        "text_button": "#dedede",
+        "text_primary": "#dedede",
+        "text_secondary": "#dedede",
+        "text_title": "#dedede"
+    },
+    "custom_widths": {
+        "cpu": 1,
+        "graph-cpu": 2
+    },
+    "graph_order": [
+        "graph-cpu",
+        "graph-gpu",
+        "graph-ram",
+        "graph-net"
+    ],
+    "language": "en",
+    "order": [
+        "cpu",
+        "cpu_temp",
+        "gpu",
+        "gpu_temp",
+        "ram",
+        "net"
+    ],
+    "refresh_rate": 1000,
+    "show_advanced_colors": false
+}
