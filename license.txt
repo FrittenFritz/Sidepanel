@@ -1,9 +1,9 @@
-This software uses the library "LibreHardwareMonitorLib.dll".
+This software uses the librarys "LibreHardwareMonitorLib.dll" and "HidSharp.dll".
 Project: LibreHardwareMonitor
 Website: https://github.com/LibreHardwareMonitor/LibreHardwareMonitor
 License: Mozilla Public License 2.0 (MPL 2.0)
 
-The source code for the library is available at the link above.
+The source code for the librarys is available at the link above.
 No changes were made to the library.
 
 ----------------------------------------------------------------------------
@@ -359,4 +359,5 @@ You may add additional accurate notices of copyright ownership.
 Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 This Source Code Form is "Incompatible With Secondary Licenses", as
+
 defined by the Mozilla Public License, v. 2.0.
