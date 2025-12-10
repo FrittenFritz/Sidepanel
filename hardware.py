@@ -78,7 +78,7 @@ def get_sensor_value(hardware_type_filter, sensor_type, sensor_name_part=""):
                             
                             # CRITICAL: Only return valid values > 0 to avoid ghost readings
                             if sensor.Value is not None and sensor.Value > 0:
-                                return round(sensor.Value, 1)
+                                return int(round(sensor.Value))
     except:
         pass
     return "N/A"
@@ -108,7 +108,7 @@ def get_wmi_temp():
                 celsius = (kelvin / 10.0) - 273.15
                 # Plausibility check
                 if celsius > 20 and celsius < 110: 
-                    return round(celsius, 1)
+                     return int(round(celsius))
     except:
         pass
     return 0
@@ -138,7 +138,7 @@ def get_cpu_temp():
 
 def get_cpu_load():
     val = get_sensor_value("Cpu", "Load", "Total")
-    if val == "N/A": return psutil.cpu_percent(interval=0)
+    if val == "N/A": return int(round(psutil.cpu_percent(interval=0)))
     return val
 
 def get_gpu_temp():
@@ -165,8 +165,8 @@ def get_gpu_data():
 def get_ram_data():
     mem = psutil.virtual_memory()
     return {
-        "percent": mem.percent,
-        "gb": round(mem.used / (1024**3), 1)
+    "percent": int(round(mem.percent)),
+      "gb": round(mem.used / (1024**3), 1)
     }
 
 def get_net_speed():
