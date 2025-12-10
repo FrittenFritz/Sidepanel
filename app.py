@@ -12,7 +12,7 @@ import pystray
 import logging
 
 # --- VERSION ---
-VERSION = "v0.9.2.1"
+VERSION = "v0.9.2.2"
 
 # --- CONFIGURATION ---
 CONFIG_FILE = 'config.json'
