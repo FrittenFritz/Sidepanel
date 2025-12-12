@@ -12,7 +12,7 @@ import pystray
 import logging
 
 # --- VERSION ---
-VERSION = "v0.9.2.2"
+VERSION = "v0.9.3"
 
 # --- CONFIGURATION ---
 CONFIG_FILE = 'config.json'
@@ -34,9 +34,11 @@ DEFAULT_CONFIG = {
     "order": ["cpu", "cpu_temp", "gpu", "gpu_temp", "ram", "net"],
     "graph_order": ["graph-cpu", "graph-gpu", "graph-ram", "graph-net"],
     "custom_widths": {},
+    "sensor_modes": {},
     "refresh_rate": 1000,
     "card_size": "medium",
     "language": "en"
+    
 }
 
 # --- GLOBAL DATA CACHE ---
