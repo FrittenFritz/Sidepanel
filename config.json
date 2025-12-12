@@ -1,5 +1,5 @@
 {
-    "card_size": "small",
+    "card_size": "medium",
     "colors": {
         "accent_cpu": "#ef4444",
         "accent_gpu": "#22c55e",
@@ -12,10 +12,7 @@
         "text_secondary": "#dedede",
         "text_title": "#dedede"
     },
-    "custom_widths": {
-        "cpu": 1,
-        "graph-cpu": 2
-    },
+    "custom_widths": {},
     "graph_order": [
         "graph-cpu",
         "graph-gpu",
@@ -32,5 +29,9 @@
         "net"
     ],
     "refresh_rate": 1000,
+    "sensor_modes": {
+        "gpu": "std",
+        "ram": "std"
+    },
     "show_advanced_colors": false
 }
