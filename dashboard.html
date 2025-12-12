@@ -158,10 +158,10 @@
             </div>
         </div>
 
-        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-net">
+        <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-net" data-clickable="true">
             <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
-            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden">
-                <h2 class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_net">NET I/O HISTORY</h2>
+            <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden" onclick="toggleNetScale()">
+                <h2 id="title-graph-net" class="text-sec text-xs md:text-sm uppercase tracking-wider font-bold mb-2 translate" data-t="graph_net">NET I/O HISTORY</h2>
                 <div class="relative w-full h-full flex-1"><canvas id="chart-net"></canvas></div>
             </div>
             <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
@@ -173,7 +173,6 @@
                 </button>
             </div>
         </div>
-    </div>
 
     <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 p-6 rounded-xl shadow-2xl w-full max-w-md border border-slate-600 max-h-[90vh] overflow-y-auto">
@@ -362,6 +361,8 @@
             const title = document.getElementById(`title-${key}`);
             if (!el || !unit) return;
             const lang = currentConfig.language || 'en';
+            
+            // Toggle Logic
             if (el.dataset.mode === 'alt') {
                 el.dataset.mode = 'std';
                 el.innerText = el.dataset.valStd || '--';
@@ -375,14 +376,63 @@
                 if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
                 if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
             }
+
+            // --- NEU: ZUSTAND SPEICHERN ---
+            if (!currentConfig.sensor_modes) currentConfig.sensor_modes = {};
+            currentConfig.sensor_modes[key] = el.dataset.mode;
+            
+            // Speichern ohne Reload (wie bei changeCardSize)
+            fetch('/api/settings', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(currentConfig) 
+            });
         }
 
         function toggleGraphMode(key) {
             const chart = charts[key];
             if (!chart) return;
             const canvas = document.getElementById(`chart-${key}`);
-            if (canvas.dataset.mode === 'alt') canvas.dataset.mode = 'std'; else canvas.dataset.mode = 'alt';
+            
+            // Toggle Logic
+            if (canvas.dataset.mode === 'alt') {
+                canvas.dataset.mode = 'std';
+                // Switch back to Standard (%) -> Fix Scale to 100
+                chart.options.scales.y.max = 100;
+            } else {
+                canvas.dataset.mode = 'alt';
+                // Switch to Alt (GB/VRAM) -> Dynamic Scale (remove max)
+                delete chart.options.scales.y.max;
+            }
+            
             updateGraphTitles();
+            updateCharts(); // Update immediately to prevent visual glitches
+        }
+
+        function toggleNetScale() {
+            const chart = charts.net;
+            if (!chart) return;
+            
+            // Cycle: 100 -> 20 -> 40 -> 60 -> 80 -> 100
+            let currentMax = chart.options.scales.y.max || 100;
+            let newMax = 100;
+
+            if (currentMax === 100) newMax = 20;
+            else if (currentMax === 20) newMax = 40;
+            else if (currentMax === 40) newMax = 60;
+            else if (currentMax === 60) newMax = 80;
+            else newMax = 100;
+
+            chart.options.scales.y.max = newMax;
+            // Force exactly 5 ticks (dividing by 4 gives us: 0, 25%, 50%, 75%, 100%)
+            chart.options.scales.y.ticks.stepSize = newMax / 4;
+            
+            chart.update();
+
+            // Update Title Text
+            const lang = currentConfig.language || 'en';
+            const baseTitle = TRANSLATIONS[lang]['graph_net'];
+            document.getElementById('title-graph-net').innerText = `${baseTitle} (MAX ${newMax} MB/s)`;
         }
 
         async function updateDashboard() {
@@ -568,12 +618,72 @@
             if (!charts.ram) charts.ram = initChart('chart-ram', c.accent_ram); else { charts.ram.data.datasets[0].borderColor = c.accent_ram; charts.ram.data.datasets[0].backgroundColor = c.accent_ram + '20'; }
             if (!charts.net) charts.net = initChart('chart-net', c.accent_net); else { charts.net.data.datasets[0].borderColor = c.accent_net; charts.net.data.datasets[0].backgroundColor = c.accent_net + '20'; }
 
+// --- NEW: FORCE SCALES (v0.9.2) ---
+            // CPU is always % -> Max 100
+            if (charts.cpu) charts.cpu.options.scales.y.max = 100;
+
+            // GPU & RAM defaults to % -> Max 100 (unless mode is already alt)
+            if (charts.gpu) {
+                const mode = document.getElementById('chart-gpu').dataset.mode;
+                charts.gpu.options.scales.y.max = (mode === 'alt') ? null : 100;
+            }
+            if (charts.ram) {
+                const mode = document.getElementById('chart-ram').dataset.mode;
+                charts.ram.options.scales.y.max = (mode === 'alt') ? null : 100;
+            }
+
+            // NET defaults to 100 MB/s fixed scale with 5 ticks (step 25)
+            if (charts.net) {
+                if (!charts.net.options.scales.y.max) {
+                    charts.net.options.scales.y.max = 100;
+                    charts.net.options.scales.y.ticks.stepSize = 25;
+                }
+                
+                // Update Title on Load
+                const lang = currentConfig.language || 'en';
+                const baseTitle = TRANSLATIONS[lang]['graph_net'];
+                const currentMax = charts.net.options.scales.y.max;
+                const titleEl = document.getElementById('title-graph-net');
+                if(titleEl) titleEl.innerText = `${baseTitle} (MAX ${currentMax} MB/s)`;
+            }
+            
+            // Apply changes
+            Object.values(charts).forEach(c => c.update());
+            // ----------------------------------
+
             const grid1 = document.getElementById('grid-container');
             const grid2 = document.getElementById('graph-container');
             if (cfg.order && cfg.order.length > 0) cfg.order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid1) grid1.appendChild(el); });
             if (cfg.graph_order && cfg.graph_order.length > 0) cfg.graph_order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid2) grid2.appendChild(el); });
 
             const rate = cfg.refresh_rate || 1000;
+
+            // ... (bestehender Code in applyConfig) ...
+            
+            // Apply changes
+            Object.values(charts).forEach(c => c.update());
+
+            // --- NEU: RESTORE SENSOR MODES (RAM/GPU) ---
+            if (cfg.sensor_modes) {
+                const lang = cfg.language || 'en';
+                for (const [key, mode] of Object.entries(cfg.sensor_modes)) {
+                    if (mode === 'alt') {
+                        const el = document.getElementById(`val-${key}`);
+                        const unit = document.getElementById(`unit-${key}`);
+                        const title = document.getElementById(`title-${key}`);
+                        
+                        if (el && unit && title) {
+                            el.dataset.mode = 'alt'; // Setze Modus damit updateDashboard Bescheid weiß
+                            unit.innerText = 'GB';   // Setze Einheit
+                            
+                            // Setze Titel passend zur Sprache
+                            if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
+                            if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
+                        }
+                    }
+                }
+            }
+            
             startTimer(rate);
         }
 
