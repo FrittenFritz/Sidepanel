@@ -361,6 +361,8 @@
             const title = document.getElementById(`title-${key}`);
             if (!el || !unit) return;
             const lang = currentConfig.language || 'en';
+            
+            // Toggle Logic
             if (el.dataset.mode === 'alt') {
                 el.dataset.mode = 'std';
                 el.innerText = el.dataset.valStd || '--';
@@ -374,6 +376,17 @@
                 if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
                 if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
             }
+
+            // --- NEU: ZUSTAND SPEICHERN ---
+            if (!currentConfig.sensor_modes) currentConfig.sensor_modes = {};
+            currentConfig.sensor_modes[key] = el.dataset.mode;
+            
+            // Speichern ohne Reload (wie bei changeCardSize)
+            fetch('/api/settings', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(currentConfig) 
+            });
         }
 
         function toggleGraphMode(key) {
@@ -644,6 +657,33 @@
             if (cfg.graph_order && cfg.graph_order.length > 0) cfg.graph_order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid2) grid2.appendChild(el); });
 
             const rate = cfg.refresh_rate || 1000;
+
+            // ... (bestehender Code in applyConfig) ...
+            
+            // Apply changes
+            Object.values(charts).forEach(c => c.update());
+
+            // --- NEU: RESTORE SENSOR MODES (RAM/GPU) ---
+            if (cfg.sensor_modes) {
+                const lang = cfg.language || 'en';
+                for (const [key, mode] of Object.entries(cfg.sensor_modes)) {
+                    if (mode === 'alt') {
+                        const el = document.getElementById(`val-${key}`);
+                        const unit = document.getElementById(`unit-${key}`);
+                        const title = document.getElementById(`title-${key}`);
+                        
+                        if (el && unit && title) {
+                            el.dataset.mode = 'alt'; // Setze Modus damit updateDashboard Bescheid weiß
+                            unit.innerText = 'GB';   // Setze Einheit
+                            
+                            // Setze Titel passend zur Sprache
+                            if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
+                            if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
+                        }
+                    }
+                }
+            }
+            
             startTimer(rate);
         }
 
