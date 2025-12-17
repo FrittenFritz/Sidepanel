@@ -38,9 +38,6 @@
         .drag-handle { cursor: grab; transition: background 0.2s; }
         .drag-handle:active { cursor: grabbing; background-color: rgba(255,255,255,0.1); }
         
-        .resize-handle { cursor: col-resize; transition: background 0.2s; touch-action: none; user-select: none; }
-        .resize-handle:active { background-color: rgba(255,255,255,0.2); }
-        
         .size-btn { 
             cursor: pointer; display: flex; align-items: center; justify-content: center; 
             border: none; outline: none; background: transparent; 
@@ -109,7 +106,6 @@
     <div class="divider"></div>
 
     <div id="graph-container" class="grid gap-4 md:gap-6">
-        
         <div class="card rounded-xl shadow-lg border border-slate-700/50 flex relative group lg:col-span-2 graph-card" data-id="graph-cpu">
             <div class="drag-handle w-10 bg-slate-700/20 border-r border-slate-700/50 flex items-center justify-center text-gray-500 hover:text-white hover:bg-slate-700/40"><div class="text-xl">⣿</div></div>
             <div class="content-area flex-1 p-4 flex flex-col w-full relative overflow-hidden">
@@ -117,12 +113,8 @@
                 <div class="relative w-full h-full flex-1"><canvas id="chart-cpu"></canvas></div>
             </div>
             <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
-                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', 1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', -1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                </button>
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-cpu', -1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
             </div>
         </div>
 
@@ -133,12 +125,8 @@
                 <div class="relative w-full h-full flex-1"><canvas id="chart-gpu"></canvas></div>
             </div>
             <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
-                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', 1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', -1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                </button>
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-gpu', -1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
             </div>
         </div>
 
@@ -149,12 +137,8 @@
                 <div class="relative w-full h-full flex-1"><canvas id="chart-ram"></canvas></div>
             </div>
             <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
-                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-ram', 1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-ram', -1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                </button>
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-ram', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-ram', -1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
             </div>
         </div>
 
@@ -165,12 +149,8 @@
                 <div class="relative w-full h-full flex-1"><canvas id="chart-net"></canvas></div>
             </div>
             <div class="flex flex-col w-10 border-l border-slate-700/50 bg-slate-700/10 relative z-20">
-                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-net', 1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-net', -1)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                </button>
+                <button type="button" class="size-btn h-1/2 border-b border-slate-700/50 text-gray-500" onclick="changeCardSize(event, 'graph-net', 1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+                <button type="button" class="size-btn h-1/2 text-gray-500" onclick="changeCardSize(event, 'graph-net', -1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
             </div>
         </div>
 
@@ -180,12 +160,8 @@
             
             <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="language">Language</label>
-                <select id="input-language">
-                    <option value="en">English</option>
-                    <option value="de">Deutsch</option>
-                </select>
+                <select id="input-language"><option value="en">English</option><option value="de">Deutsch</option></select>
             </div>
-
             <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="card_size">Card Size</label>
                 <select id="input-card-size">
@@ -195,7 +171,6 @@
                     <option value="large" class="translate" data-t="size_large">Large (2 Cols)</option>
                 </select>
             </div>
-
             <div class="mb-6 border-b border-slate-700 pb-4">
                 <label class="block text-sm font-bold text-gray-300 mb-2 translate" data-t="refresh_rate">Refresh Rate</label>
                 <select id="input-refresh-rate">
@@ -205,7 +180,6 @@
                 </select>
                 <p class="text-xs text-gray-500 mt-1 translate" data-t="reload_hint">Page will reload after saving.</p>
             </div>
-
             <div id="advanced-settings-area" class="hidden">
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div><label class="block text-xs text-gray-400 mb-1 translate" data-t="col_bg">Background</label><input type="color" id="input-bg-body" onchange="previewColor()"></div>
@@ -223,7 +197,6 @@
                     <input type="color" id="input-accent-net" onchange="previewColor()">
                 </div>
             </div>
-
             <div class="flex justify-end gap-3">
                 <button onclick="closeSettings()" class="px-4 py-2 rounded text-gray-300 hover:text-white translate" data-t="btn_cancel">Cancel</button>
                 <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 font-bold translate" data-t="btn_save">Save</button>
@@ -238,6 +211,9 @@
         let maxDataPoints = 60;
         const charts = {};
         const history = { cpu: [], gpu_core: [], gpu_vram: [], ram_percent: [], ram_gb: [], net: [] };
+        
+        // DOM CACHE (Optimization)
+        const elCache = {};
 
         const TRANSLATIONS = {
             en: {
@@ -266,35 +242,25 @@
             }
         };
 
-        // --- GLOBAL RESIZE FUNCTION ---
+        // Helper to get element (Cached)
+        function getEl(id) {
+            if (!elCache[id]) elCache[id] = document.getElementById(id);
+            return elCache[id];
+        }
+
         window.changeCardSize = function(event, id, delta) {
             if(event) event.stopPropagation();
-
             const el = document.querySelector(`[data-id="${id}"]`);
             if(!el) return;
-
-            // FIX: Check UNIVERSAL classes "col-span-X"
             let currentSpan = 1;
-            for(let i=2; i<=6; i++) {
-                if(el.classList.contains(`col-span-${i}`)) currentSpan = i;
-            }
-
+            for(let i=2; i<=6; i++) { if(el.classList.contains(`col-span-${i}`)) currentSpan = i; }
             let newSpan = currentSpan + delta;
-            
-            // LIMITS
-            if(newSpan < 1) newSpan = 1;
-            if(newSpan > 3) newSpan = 3; // MAX 3 COLUMNS
-
-            // Apply
+            if(newSpan < 1) newSpan = 1; if(newSpan > 3) newSpan = 3;
             for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
             el.classList.add(`col-span-${newSpan}`);
-
-            // Update Config
             if (!currentConfig.custom_widths) currentConfig.custom_widths = {};
             currentConfig.custom_widths[id] = newSpan;
-            
             fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
-
             if(id.startsWith('graph-')) {
                 const key = id.replace('graph-', '');
                 if(charts[key]) setTimeout(() => charts[key].resize(), 50);
@@ -305,24 +271,16 @@
         new Sortable(document.getElementById('graph-container'), { animation: 150, handle: '.drag-handle', ghostClass: 'opacity-50', onEnd: () => saveOrder() });
 
         function initChart(canvasId, color) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
+            const ctx = getEl(canvasId).getContext('2d');
             return new Chart(ctx, {
                 type: 'line',
                 data: { labels: [], datasets: [{ data: [], borderColor: color, backgroundColor: color + '20', borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4 }] },
                 options: { 
                     responsive: true, maintainAspectRatio: false, animation: false, 
                     plugins: { legend: { display: false } }, 
-                    scales: { 
-                        x: { display: false }, 
-                        y: { beginAtZero: true, grid: { color: '#ffffff10' }, ticks: { color: '#94a3b8', font: { size: 14, weight: 'bold' } } } 
-                    } 
+                    scales: { x: { display: false }, y: { beginAtZero: true, grid: { color: '#ffffff10' }, ticks: { color: '#94a3b8', font: { size: 14, weight: 'bold' } } } } 
                 }
             });
-        }
-
-        function updateSpanClass(el, span) {
-            for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
-            el.classList.add(`col-span-${span}`);
         }
 
         async function saveConfigOnly() {
@@ -344,25 +302,28 @@
 
         function updateGraphTitles() {
             const lang = currentConfig.language || 'en';
-            const gpuMode = document.getElementById('chart-gpu').dataset.mode || 'std';
-            const gpuKey = gpuMode === 'alt' ? 'graph_gpu_vram' : 'graph_gpu_load';
-            document.getElementById('title-graph-gpu').innerText = TRANSLATIONS[lang][gpuKey];
-            const ramMode = document.getElementById('chart-ram').dataset.mode || 'std';
-            const ramKey = ramMode === 'alt' ? 'graph_ram_gb' : 'graph_ram_load';
-            document.getElementById('title-graph-ram').innerText = TRANSLATIONS[lang][ramKey];
+            const gpuMode = getEl('chart-gpu').dataset.mode || 'std';
+            getEl('title-graph-gpu').innerText = TRANSLATIONS[lang][gpuMode === 'alt' ? 'graph_gpu_vram' : 'graph_gpu_load'];
+            
+            const ramMode = getEl('chart-ram').dataset.mode || 'std';
+            getEl('title-graph-ram').innerText = TRANSLATIONS[lang][ramMode === 'alt' ? 'graph_ram_gb' : 'graph_ram_load'];
+            
             document.querySelector('[data-t="graph_cpu"]').innerText = TRANSLATIONS[lang]['graph_cpu'];
-            document.querySelector('[data-t="graph_net"]').innerText = TRANSLATIONS[lang]['graph_net'];
+            
+            // NET Title dynamic
+            const baseTitle = TRANSLATIONS[lang]['graph_net'];
+            const netMax = charts.net ? (charts.net.options.scales.y.max || 100) : 100;
+            getEl('title-graph-net').innerText = `${baseTitle} (MAX ${netMax} MB/s)`;
         }
 
         function toggleSensorMode(key) {
             if (key !== 'ram' && key !== 'gpu') return;
-            const el = document.getElementById(`val-${key}`);
-            const unit = document.getElementById(`unit-${key}`);
-            const title = document.getElementById(`title-${key}`);
+            const el = getEl(`val-${key}`);
+            const unit = getEl(`unit-${key}`);
+            const title = getEl(`title-${key}`);
             if (!el || !unit) return;
             const lang = currentConfig.language || 'en';
             
-            // Toggle Logic
             if (el.dataset.mode === 'alt') {
                 el.dataset.mode = 'std';
                 el.innerText = el.dataset.valStd || '--';
@@ -376,72 +337,48 @@
                 if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
                 if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
             }
-
-            // --- NEU: ZUSTAND SPEICHERN ---
             if (!currentConfig.sensor_modes) currentConfig.sensor_modes = {};
             currentConfig.sensor_modes[key] = el.dataset.mode;
-            
-            // Speichern ohne Reload (wie bei changeCardSize)
-            fetch('/api/settings', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(currentConfig) 
-            });
+            fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
         }
 
         function toggleGraphMode(key) {
             const chart = charts[key];
             if (!chart) return;
-            const canvas = document.getElementById(`chart-${key}`);
-            
-            // Toggle Logic
+            const canvas = getEl(`chart-${key}`);
             if (canvas.dataset.mode === 'alt') {
                 canvas.dataset.mode = 'std';
-                // Switch back to Standard (%) -> Fix Scale to 100
                 chart.options.scales.y.max = 100;
             } else {
                 canvas.dataset.mode = 'alt';
-                // Switch to Alt (GB/VRAM) -> Dynamic Scale (remove max)
                 delete chart.options.scales.y.max;
             }
-            
             updateGraphTitles();
-            updateCharts(); // Update immediately to prevent visual glitches
+            updateCharts();
         }
 
         function toggleNetScale() {
             const chart = charts.net;
             if (!chart) return;
-            
-            // Cycle: 100 -> 20 -> 40 -> 60 -> 80 -> 100
             let currentMax = chart.options.scales.y.max || 100;
-            let newMax = 100;
-
-            if (currentMax === 100) newMax = 20;
-            else if (currentMax === 20) newMax = 40;
-            else if (currentMax === 40) newMax = 60;
-            else if (currentMax === 60) newMax = 80;
-            else newMax = 100;
-
+            let newMax = (currentMax === 100) ? 20 : (currentMax === 20) ? 40 : (currentMax === 40) ? 60 : (currentMax === 60) ? 80 : 100;
             chart.options.scales.y.max = newMax;
-            // Force exactly 5 ticks (dividing by 4 gives us: 0, 25%, 50%, 75%, 100%)
             chart.options.scales.y.ticks.stepSize = newMax / 4;
-            
             chart.update();
-
-            // Update Title Text
-            const lang = currentConfig.language || 'en';
-            const baseTitle = TRANSLATIONS[lang]['graph_net'];
-            document.getElementById('title-graph-net').innerText = `${baseTitle} (MAX ${newMax} MB/s)`;
+            updateGraphTitles();
         }
 
         async function updateDashboard() {
             try {
                 const response = await fetch('/api/data');
                 const data = await response.json();
-                for (const [key, value] of Object.entries(data)) {
-                    const el = document.getElementById(`val-${key}`);
+                
+                // Optimized Loop
+                for (const key in data) {
+                    const el = getEl(`val-${key}`);
                     if (!el) continue;
+                    const value = data[key];
+
                     if (key === 'ram' || key === 'gpu') {
                         let valStd = 0, valAlt = 0;
                         if (typeof value === 'object') {
@@ -450,7 +387,8 @@
                         } else { valStd = value; }
                         el.dataset.valStd = valStd; el.dataset.valAlt = valAlt;
                         if (!el.dataset.mode) el.dataset.mode = 'std';
-                        if (el.dataset.mode === 'alt') el.innerText = valAlt; else el.innerText = valStd;
+                        el.innerText = (el.dataset.mode === 'alt') ? valAlt : valStd;
+                        
                         if (key === 'ram') { pushHistory('ram_percent', valStd); pushHistory('ram_gb', valAlt); }
                         if (key === 'gpu') { pushHistory('gpu_core', valStd); pushHistory('gpu_vram', valAlt); }
                     } else {
@@ -471,15 +409,17 @@
         function updateCharts() {
             if (charts.cpu) { charts.cpu.data.labels = new Array(history.cpu.length).fill(''); charts.cpu.data.datasets[0].data = history.cpu; charts.cpu.update(); }
             if (charts.gpu) {
-                const mode = document.getElementById('chart-gpu').dataset.mode || 'std';
-                charts.gpu.data.labels = new Array((mode === 'alt' ? history.gpu_vram : history.gpu_core).length).fill('');
-                charts.gpu.data.datasets[0].data = mode === 'alt' ? history.gpu_vram : history.gpu_core;
+                const mode = getEl('chart-gpu').dataset.mode || 'std';
+                const d = mode === 'alt' ? history.gpu_vram : history.gpu_core;
+                charts.gpu.data.labels = new Array(d.length).fill('');
+                charts.gpu.data.datasets[0].data = d;
                 charts.gpu.update();
             }
             if (charts.ram) {
-                const mode = document.getElementById('chart-ram').dataset.mode || 'std';
-                charts.ram.data.labels = new Array((mode === 'alt' ? history.ram_gb : history.ram_percent).length).fill('');
-                charts.ram.data.datasets[0].data = mode === 'alt' ? history.ram_gb : history.ram_percent;
+                const mode = getEl('chart-ram').dataset.mode || 'std';
+                const d = mode === 'alt' ? history.ram_gb : history.ram_percent;
+                charts.ram.data.labels = new Array(d.length).fill('');
+                charts.ram.data.datasets[0].data = d;
                 charts.ram.update();
             }
             if (charts.net) { charts.net.data.labels = new Array(history.net.length).fill(''); charts.net.data.datasets[0].data = history.net; charts.net.update(); }
@@ -495,57 +435,32 @@
             const res = await fetch('/api/settings');
             currentConfig = await res.json();
             applyConfig(currentConfig);
-            
-            // CHECK THE FLAG FOR EXPERT MODE
-            if (currentConfig.show_advanced_colors) {
-                document.getElementById('advanced-settings-area').classList.remove('hidden');
-            } else {
-                document.getElementById('advanced-settings-area').classList.add('hidden');
-            }
-            
-            document.getElementById('body-content').classList.remove('opacity-0');
+            if (currentConfig.show_advanced_colors) getEl('advanced-settings-area').classList.remove('hidden');
+            else getEl('advanced-settings-area').classList.add('hidden');
+            getEl('body-content').classList.remove('opacity-0');
         }
 
         function applySize(size) {
-            const grid1 = document.getElementById('grid-container');
-            const grid2 = document.getElementById('graph-container');
-            const cards = document.querySelectorAll('.card .content-area');
-            const values = document.querySelectorAll('[id^="val-"]');
-            const titles = document.querySelectorAll('[id^="title-"]');
+            const grid1 = getEl('grid-container');
+            const grid2 = getEl('graph-container');
             
-            // IMPORTANT: Remove ALL existing col-span classes (LG and Universal)
+            // Clean classes
             document.querySelectorAll('.card').forEach(c => {
-               for(let i=1; i<=6; i++) {
-                   c.classList.remove(`col-span-${i}`);
-                   c.classList.remove(`lg:col-span-${i}`);
-               }
+               for(let i=1; i<=6; i++) { c.classList.remove(`col-span-${i}`, `lg:col-span-${i}`); }
             });
+            
+            // Grid classes
+            grid1.className = 'grid gap-4 md:gap-6'; grid2.className = 'grid gap-4 md:gap-6';
+            if(size === 'tiny') { grid1.classList.add('grid-cols-2','md:grid-cols-4','lg:grid-cols-6'); grid2.classList.add('grid-cols-1','lg:grid-cols-3'); }
+            else if(size === 'small') { grid1.classList.add('grid-cols-2','md:grid-cols-3','lg:grid-cols-4'); grid2.classList.add('grid-cols-1','lg:grid-cols-3'); }
+            else if(size === 'medium') { grid1.classList.add('grid-cols-1','md:grid-cols-2','lg:grid-cols-3'); grid2.classList.add('grid-cols-1','lg:grid-cols-3'); }
+            else { grid1.classList.add('grid-cols-1','md:grid-cols-2'); grid2.classList.add('grid-cols-1','lg:grid-cols-2'); }
 
-            grid1.className = 'grid gap-4 md:gap-6';
-            grid2.className = 'grid gap-4 md:gap-6';
-
-            if(size === 'tiny') { 
-                grid1.classList.add('grid-cols-2', 'md:grid-cols-4', 'lg:grid-cols-6'); 
-                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
-            }
-            else if(size === 'small') { 
-                grid1.classList.add('grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4'); 
-                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
-            }
-            else if(size === 'medium') { 
-                grid1.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3'); 
-                grid2.classList.add('grid-cols-1', 'lg:grid-cols-3'); 
-            }
-            else { 
-                grid1.classList.add('grid-cols-1', 'md:grid-cols-2'); 
-                grid2.classList.add('grid-cols-1', 'lg:grid-cols-2'); 
-            }
-
-            cards.forEach(c => {
+            // Card Padding/Height
+            document.querySelectorAll('.card .content-area').forEach(c => {
                 const parent = c.parentElement;
-                parent.classList.remove('min-h-[80px]', 'min-h-[100px]', 'min-h-[140px]', 'min-h-[180px]', 'min-h-[150px]', 'min-h-[200px]', 'min-h-[250px]');
-                c.classList.remove('p-2', 'p-3', 'p-4', 'p-6', 'p-8');
-
+                parent.classList.remove('min-h-[80px]','min-h-[100px]','min-h-[140px]','min-h-[180px]','min-h-[150px]','min-h-[200px]','min-h-[250px]');
+                c.classList.remove('p-2','p-3','p-4','p-6','p-8');
                 if (parent.classList.contains('graph-card')) {
                     if(size === 'tiny') { parent.classList.add('min-h-[150px]'); c.classList.add('p-2'); }
                     else if(size === 'small') { parent.classList.add('min-h-[150px]'); c.classList.add('p-3'); }
@@ -559,7 +474,8 @@
                 }
             });
 
-            values.forEach(v => {
+            // Text Sizes
+            document.querySelectorAll('[id^="val-"]').forEach(v => {
                 v.className = "font-bold"; 
                 if(size === 'tiny') v.classList.add('text-2xl');
                 else if(size === 'small') v.classList.add('text-3xl');
@@ -567,7 +483,7 @@
                 else v.classList.add('text-6xl');
             });
 
-            titles.forEach(t => {
+            document.querySelectorAll('[id^="title-"]').forEach(t => {
                 t.classList.remove('text-[10px]', 'text-xs', 'text-sm', 'text-base');
                 if(size === 'tiny') t.classList.add('text-[10px]');
                 else if(size === 'small') t.classList.add('text-xs');
@@ -583,27 +499,21 @@
             root.setProperty('--text-title', c.text_title || '#38bdf8'); root.setProperty('--text-button', c.text_button || '#dedede'); 
             root.setProperty('--text-primary', c.text_primary); root.setProperty('--text-secondary', c.text_secondary);
             
-            if(document.getElementById('val-cpu')) document.getElementById('val-cpu').style.color = c.accent_cpu;
-            if(document.getElementById('val-cpu_temp')) document.getElementById('val-cpu_temp').style.color = c.accent_cpu;
-            if(document.getElementById('val-gpu')) document.getElementById('val-gpu').style.color = c.accent_gpu;
-            if(document.getElementById('val-gpu_temp')) document.getElementById('val-gpu_temp').style.color = c.accent_gpu;
-            if(document.getElementById('val-ram')) document.getElementById('val-ram').style.color = c.accent_ram;
-            if(document.getElementById('val-net')) document.getElementById('val-net').style.color = c.accent_net;
+            // Set Sensor Colors safely
+            const setCol = (id, col) => { const el = getEl(id); if(el) el.style.color = col; };
+            setCol('val-cpu', c.accent_cpu); setCol('val-cpu_temp', c.accent_cpu);
+            setCol('val-gpu', c.accent_gpu); setCol('val-gpu_temp', c.accent_gpu);
+            setCol('val-ram', c.accent_ram); setCol('val-net', c.accent_net);
 
             applySize(cfg.card_size || 'medium');
             
-            // APPLY CUSTOM WIDTHS UNIVERSALLY
+            // Custom Widths
             if (cfg.custom_widths) {
                 for (const [id, span] of Object.entries(cfg.custom_widths)) {
                     const el = document.querySelector(`[data-id="${id}"]`);
-                    if (el) {
-                        for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`);
-                        el.classList.add(`col-span-${span}`);
-                    }
+                    if (el) { for(let i=1; i<=6; i++) el.classList.remove(`col-span-${i}`); el.classList.add(`col-span-${span}`); }
                 }
             }
-            
-            // ENSURE GRAPHS GET DEFAULT 2-COL IF NOT SET (UNIVERSAL)
             ['graph-cpu', 'graph-gpu', 'graph-ram', 'graph-net'].forEach(id => {
                  if (!cfg.custom_widths || !cfg.custom_widths[id]) {
                      const el = document.querySelector(`[data-id="${id}"]`);
@@ -613,139 +523,96 @@
 
             applyTranslations(); 
 
+            // Initialize Charts
             if (!charts.cpu) charts.cpu = initChart('chart-cpu', c.accent_cpu); else { charts.cpu.data.datasets[0].borderColor = c.accent_cpu; charts.cpu.data.datasets[0].backgroundColor = c.accent_cpu + '20'; }
             if (!charts.gpu) charts.gpu = initChart('chart-gpu', c.accent_gpu); else { charts.gpu.data.datasets[0].borderColor = c.accent_gpu; charts.gpu.data.datasets[0].backgroundColor = c.accent_gpu + '20'; }
             if (!charts.ram) charts.ram = initChart('chart-ram', c.accent_ram); else { charts.ram.data.datasets[0].borderColor = c.accent_ram; charts.ram.data.datasets[0].backgroundColor = c.accent_ram + '20'; }
             if (!charts.net) charts.net = initChart('chart-net', c.accent_net); else { charts.net.data.datasets[0].borderColor = c.accent_net; charts.net.data.datasets[0].backgroundColor = c.accent_net + '20'; }
 
-// --- NEW: FORCE SCALES (v0.9.2) ---
-            // CPU is always % -> Max 100
+            // Scales
             if (charts.cpu) charts.cpu.options.scales.y.max = 100;
-
-            // GPU & RAM defaults to % -> Max 100 (unless mode is already alt)
-            if (charts.gpu) {
-                const mode = document.getElementById('chart-gpu').dataset.mode;
-                charts.gpu.options.scales.y.max = (mode === 'alt') ? null : 100;
-            }
-            if (charts.ram) {
-                const mode = document.getElementById('chart-ram').dataset.mode;
-                charts.ram.options.scales.y.max = (mode === 'alt') ? null : 100;
-            }
-
-            // NET defaults to 100 MB/s fixed scale with 5 ticks (step 25)
-            if (charts.net) {
-                if (!charts.net.options.scales.y.max) {
-                    charts.net.options.scales.y.max = 100;
-                    charts.net.options.scales.y.ticks.stepSize = 25;
-                }
-                
-                // Update Title on Load
-                const lang = currentConfig.language || 'en';
-                const baseTitle = TRANSLATIONS[lang]['graph_net'];
-                const currentMax = charts.net.options.scales.y.max;
-                const titleEl = document.getElementById('title-graph-net');
-                if(titleEl) titleEl.innerText = `${baseTitle} (MAX ${currentMax} MB/s)`;
-            }
+            if (charts.gpu) charts.gpu.options.scales.y.max = (getEl('chart-gpu').dataset.mode === 'alt') ? null : 100;
+            if (charts.ram) charts.ram.options.scales.y.max = (getEl('chart-ram').dataset.mode === 'alt') ? null : 100;
+            if (charts.net && !charts.net.options.scales.y.max) { charts.net.options.scales.y.max = 100; charts.net.options.scales.y.ticks.stepSize = 25; }
             
-            // Apply changes
-            Object.values(charts).forEach(c => c.update());
-            // ----------------------------------
-
-            const grid1 = document.getElementById('grid-container');
-            const grid2 = document.getElementById('graph-container');
-            if (cfg.order && cfg.order.length > 0) cfg.order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid1) grid1.appendChild(el); });
-            if (cfg.graph_order && cfg.graph_order.length > 0) cfg.graph_order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid2) grid2.appendChild(el); });
-
-            const rate = cfg.refresh_rate || 1000;
-
-            // ... (bestehender Code in applyConfig) ...
-            
-            // Apply changes
             Object.values(charts).forEach(c => c.update());
 
-            // --- NEU: RESTORE SENSOR MODES (RAM/GPU) ---
+            // Order
+            const grid1 = getEl('grid-container');
+            const grid2 = getEl('graph-container');
+            if (cfg.order) cfg.order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid1) grid1.appendChild(el); });
+            if (cfg.graph_order) cfg.graph_order.forEach(id => { const el = document.querySelector(`[data-id="${id}"]`); if (el && el.parentElement === grid2) grid2.appendChild(el); });
+
+            // Restore Modes
             if (cfg.sensor_modes) {
                 const lang = cfg.language || 'en';
                 for (const [key, mode] of Object.entries(cfg.sensor_modes)) {
                     if (mode === 'alt') {
-                        const el = document.getElementById(`val-${key}`);
-                        const unit = document.getElementById(`unit-${key}`);
-                        const title = document.getElementById(`title-${key}`);
-                        
+                        const el = getEl(`val-${key}`);
+                        const unit = getEl(`unit-${key}`);
+                        const title = getEl(`title-${key}`);
                         if (el && unit && title) {
-                            el.dataset.mode = 'alt'; // Setze Modus damit updateDashboard Bescheid weiß
-                            unit.innerText = 'GB';   // Setze Einheit
-                            
-                            // Setze Titel passend zur Sprache
+                            el.dataset.mode = 'alt'; unit.innerText = 'GB';
                             if (key === 'gpu') title.innerText = TRANSLATIONS[lang]['gpu_vram'];
                             if (key === 'ram') title.innerText = TRANSLATIONS[lang]['ram_usage'];
                         }
                     }
                 }
             }
-            
-            startTimer(rate);
+            startTimer(cfg.refresh_rate || 1000);
         }
 
         function openSettings() { 
-            document.getElementById('settings-modal').style.display = 'flex';
-            document.getElementById('input-refresh-rate').value = currentConfig.refresh_rate || 1000;
-            document.getElementById('input-card-size').value = currentConfig.card_size || 'medium';
-            document.getElementById('input-language').value = currentConfig.language || 'en';
+            getEl('settings-modal').style.display = 'flex';
+            getEl('input-refresh-rate').value = currentConfig.refresh_rate || 1000;
+            getEl('input-card-size').value = currentConfig.card_size || 'medium';
+            getEl('input-language').value = currentConfig.language || 'en';
             
-            if (currentConfig.show_advanced_colors) {
-                document.getElementById('advanced-settings-area').classList.remove('hidden');
-            } else {
-                document.getElementById('advanced-settings-area').classList.add('hidden');
-            }
-
             if (currentConfig.colors) {
-                document.getElementById('input-bg-body').value = currentConfig.colors.bg_body || '#0f172a';
-                document.getElementById('input-bg-card').value = currentConfig.colors.bg_card || '#1e293b';
-                document.getElementById('input-text-title').value = currentConfig.colors.text_title || '#38bdf8';
-                document.getElementById('input-text-button').value = currentConfig.colors.text_button || '#dedede'; 
-                document.getElementById('input-text-primary').value = currentConfig.colors.text_primary || '#ffffff';
-                document.getElementById('input-text-secondary').value = currentConfig.colors.text_secondary || '#94a3b8';
-                
-                document.getElementById('input-accent-cpu').value = currentConfig.colors.accent_cpu || '#ef4444';
-                document.getElementById('input-accent-gpu').value = currentConfig.colors.accent_gpu || '#22c55e';
-                document.getElementById('input-accent-ram').value = currentConfig.colors.accent_ram || '#eab308';
-                document.getElementById('input-accent-net').value = currentConfig.colors.accent_net || '#3b82f6';
+                getEl('input-bg-body').value = currentConfig.colors.bg_body || '#0f172a';
+                getEl('input-bg-card').value = currentConfig.colors.bg_card || '#1e293b';
+                getEl('input-text-title').value = currentConfig.colors.text_title || '#38bdf8';
+                getEl('input-text-button').value = currentConfig.colors.text_button || '#dedede'; 
+                getEl('input-text-primary').value = currentConfig.colors.text_primary || '#ffffff';
+                getEl('input-text-secondary').value = currentConfig.colors.text_secondary || '#94a3b8';
+                getEl('input-accent-cpu').value = currentConfig.colors.accent_cpu || '#ef4444';
+                getEl('input-accent-gpu').value = currentConfig.colors.accent_gpu || '#22c55e';
+                getEl('input-accent-ram').value = currentConfig.colors.accent_ram || '#eab308';
+                getEl('input-accent-net').value = currentConfig.colors.accent_net || '#3b82f6';
             }
         }
-        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; applyConfig(currentConfig); }
+        function closeSettings() { getEl('settings-modal').style.display = 'none'; applyConfig(currentConfig); }
         function previewColor() { 
             const root = document.documentElement.style;
-            root.setProperty('--bg-body', document.getElementById('input-bg-body').value);
-            root.setProperty('--bg-card', document.getElementById('input-bg-card').value);
-            root.setProperty('--text-title', document.getElementById('input-text-title').value);
-            root.setProperty('--text-button', document.getElementById('input-text-button').value); 
-            root.setProperty('--text-primary', document.getElementById('input-text-primary').value);
-            root.setProperty('--text-secondary', document.getElementById('input-text-secondary').value);
+            root.setProperty('--bg-body', getEl('input-bg-body').value);
+            root.setProperty('--bg-card', getEl('input-bg-card').value);
+            root.setProperty('--text-title', getEl('input-text-title').value);
+            root.setProperty('--text-button', getEl('input-text-button').value); 
+            root.setProperty('--text-primary', getEl('input-text-primary').value);
+            root.setProperty('--text-secondary', getEl('input-text-secondary').value);
         }
         async function saveSettings() {
-            currentConfig.refresh_rate = parseInt(document.getElementById('input-refresh-rate').value);
-            currentConfig.card_size = document.getElementById('input-card-size').value;
-            currentConfig.language = document.getElementById('input-language').value;
+            currentConfig.refresh_rate = parseInt(getEl('input-refresh-rate').value);
+            currentConfig.card_size = getEl('input-card-size').value;
+            currentConfig.language = getEl('input-language').value;
             
-            // Only save colors if the advanced section is visible (optional safety, but saving always is fine)
-            currentConfig.colors.bg_body = document.getElementById('input-bg-body').value;
-            currentConfig.colors.bg_card = document.getElementById('input-bg-card').value;
-            currentConfig.colors.text_title = document.getElementById('input-text-title').value;
-            currentConfig.colors.text_button = document.getElementById('input-text-button').value; 
-            currentConfig.colors.text_primary = document.getElementById('input-text-primary').value;
-            currentConfig.colors.text_secondary = document.getElementById('input-text-secondary').value;
-            currentConfig.colors.accent_cpu = document.getElementById('input-accent-cpu').value;
-            currentConfig.colors.accent_gpu = document.getElementById('input-accent-gpu').value;
-            currentConfig.colors.accent_ram = document.getElementById('input-accent-ram').value;
-            currentConfig.colors.accent_net = document.getElementById('input-accent-net').value;
+            currentConfig.colors.bg_body = getEl('input-bg-body').value;
+            currentConfig.colors.bg_card = getEl('input-bg-card').value;
+            currentConfig.colors.text_title = getEl('input-text-title').value;
+            currentConfig.colors.text_button = getEl('input-text-button').value; 
+            currentConfig.colors.text_primary = getEl('input-text-primary').value;
+            currentConfig.colors.text_secondary = getEl('input-text-secondary').value;
+            currentConfig.colors.accent_cpu = getEl('input-accent-cpu').value;
+            currentConfig.colors.accent_gpu = getEl('input-accent-gpu').value;
+            currentConfig.colors.accent_ram = getEl('input-accent-ram').value;
+            currentConfig.colors.accent_net = getEl('input-accent-net').value;
             
             await fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
             location.reload(); 
         }
         async function saveOrder() {
-            const grid1 = document.getElementById('grid-container');
-            const grid2 = document.getElementById('graph-container');
+            const grid1 = getEl('grid-container');
+            const grid2 = getEl('graph-container');
             currentConfig.order = Array.from(grid1.children).map(child => child.getAttribute('data-id'));
             currentConfig.graph_order = Array.from(grid2.children).map(child => child.getAttribute('data-id'));
             await fetch('/api/settings', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(currentConfig) });
