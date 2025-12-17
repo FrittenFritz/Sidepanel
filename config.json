@@ -1,5 +1,5 @@
 {
-    "card_size": "medium",
+    "card_size": "small",
     "colors": {
         "accent_cpu": "#ef4444",
         "accent_gpu": "#22c55e",
@@ -12,8 +12,15 @@
         "text_secondary": "#dedede",
         "text_title": "#dedede"
     },
-    "custom_widths": {},
+    "custom_widths": {
+        "graph-cpu": 1,
+        "graph-gpu": 1,
+        "graph-net": 3,
+        "graph-ram": 1
+    },
     "graph_order": [
+        null,
+        null,
         "graph-cpu",
         "graph-gpu",
         "graph-ram",
@@ -23,15 +30,12 @@
     "order": [
         "cpu",
         "cpu_temp",
+        "ram",
         "gpu",
         "gpu_temp",
-        "ram",
         "net"
     ],
     "refresh_rate": 1000,
-    "sensor_modes": {
-        "gpu": "std",
-        "ram": "std"
-    },
+    "sensor_modes": {},
     "show_advanced_colors": false
 }
