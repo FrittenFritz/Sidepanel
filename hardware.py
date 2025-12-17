@@ -2,208 +2,205 @@ import psutil
 import time
 import sys
 import os
-import subprocess # Required for WMI fallback
+import subprocess
 
 # --- 1. SENSOR CLASS ---
 class Sensor:
-    def __init__(self, key, default_title, unit, data_function, color="gray"):
+    def __init__(self, key, default_title, unit, data_source_key, color="gray"):
         self.key = key
         self.default_title = default_title
         self.unit = unit
-        self.func = data_function
+        self.source_key = data_source_key # Key for the monitor source
         self.color = color
 
-    def get_value(self):
-        return self.func()
-
-# --- 2. LOAD HARDWARE LIBRARY (DLL) ---
-computer = None
-try:
-    import clr 
-    
-    # Determine execution path (script vs. frozen exe)
-    if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.dirname(os.path.abspath(__file__))
-    
-    # Path to main library
-    dll_path = os.path.join(base_path, "LibreHardwareMonitorLib.dll")
-    
-    # HidSharp is loaded automatically by CLR if present in the same folder.
-    # We just ensure it exists physically to prevent runtime crashes.
-    hid_path = os.path.join(base_path, "HidSharp.dll")
-    
-    if os.path.exists(dll_path):
-        clr.AddReference(dll_path)
-        from LibreHardwareMonitor.Hardware import Computer # type: ignore
+# --- 2. HARDWARE MONITOR ENGINE ---
+class HardwareMonitor:
+    def __init__(self):
+        self.computer = None
+        self.hardware_list = [] # List of active hardware components (for Update())
+        self.sensor_pointers = {} # Map: 'cpu_temp' -> SensorObject
+        self.dll_loaded = False
         
-        computer = Computer()
-        computer.IsCpuEnabled = True  
-        computer.IsGpuEnabled = True  
-        computer.IsMemoryEnabled = True 
-        computer.IsMotherboardEnabled = True 
-        computer.IsControllerEnabled = True # Important for AIOs/Fan Controllers
-        computer.Open()
-        # print("HARDWARE MONITOR ENGINE LOADED SUCCESSFULLY!")
-    else:
-        print(f"WARNING: File not found: {dll_path}")
+        # Network cache
+        self.last_net_io = psutil.net_io_counters()
+        self.last_net_time = time.time()
 
-except Exception as e:
-    print(f"WARNING: Could not load DLL (Error: {e})")
+        self._load_dll()
+        if self.dll_loaded:
+            self._init_sensors()
 
-
-# --- 3. HELPER FUNCTIONS ---
-def get_sensor_value(hardware_type_filter, sensor_type, sensor_name_part=""):
-    if not computer: return "N/A"
-
-    try:
-        for hardware in computer.Hardware:
-            hardware.Update()
+    def _load_dll(self):
+        try:
+            import clr 
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.dirname(os.path.abspath(__file__))
             
-            # Check main hardware and sub-hardware (e.g. SuperIO chips)
-            check_list = [hardware]
-            if hasattr(hardware, "SubHardware"):
-                check_list.extend(hardware.SubHardware)
+            dll_path = os.path.join(base_path, "LibreHardwareMonitorLib.dll")
+            
+            if os.path.exists(dll_path):
+                clr.AddReference(dll_path)
+                from LibreHardwareMonitor.Hardware import Computer  # type: ignore
+                self.computer = Computer()
+                self.computer.IsCpuEnabled = True  
+                self.computer.IsGpuEnabled = True  
+                self.computer.IsMemoryEnabled = True 
+                self.computer.IsMotherboardEnabled = True 
+                self.computer.IsControllerEnabled = True
+                self.computer.Open()
+                self.dll_loaded = True
+            else:
+                print(f"WARNING: DLL not found at {dll_path}")
+        except Exception as e:
+            print(f"WARNING: Could not load DLL: {e}")
 
-            for hw_item in check_list:
-                hw_item.Update()
-                # Case-insensitive check for hardware type
-                if hardware_type_filter.lower() in str(hw_item.HardwareType).lower():
-                    for sensor in hw_item.Sensors:
+    def _find_sensor(self, hardware_type, sensor_type, name_filter=None):
+        """ Helper function: Searches for a specific sensor in the hardware tree """
+        if not self.computer: return None
+        
+        # Search hardware
+        for hw in self.computer.Hardware:
+            if hardware_type.lower() in str(hw.HardwareType).lower():
+                hw.Update() # One-time update to find sensors
+                
+                # Check SubHardware (e.g., SuperIO)
+                targets = [hw]
+                targets.extend(hw.SubHardware)
+
+                for target in targets:
+                    target.Update()
+                    for sensor in target.Sensors:
                         if str(sensor.SensorType) == sensor_type:
-                            # Optional: Filter by name
-                            if sensor_name_part and sensor_name_part.lower() not in sensor.Name.lower():
+                            if name_filter and name_filter.lower() not in sensor.Name.lower():
                                 continue
                             
-                            # CRITICAL: Only return valid values > 0 to avoid ghost readings
-                            if sensor.Value is not None and sensor.Value > 0:
-                                return int(round(sensor.Value))
-    except:
-        pass
-    return "N/A"
+                            # If found, add hardware to update list (if not already present)
+                            if target not in self.hardware_list:
+                                self.hardware_list.append(target)
+                            return sensor
+        return None
 
-# --- FALLBACK: WMI (PowerShell) ---
-def get_wmi_temp():
-    """ Queries Windows via PowerShell if DLL access is blocked by security features (Core Isolation) """
-    try:
-        cmd = "Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature | Select-Object -ExpandProperty CurrentTemperature"
+    def _init_sensors(self):
+        print("Initializing Sensors (One-time scan)...")
         
-        # Suppress console window for subprocess
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        # 1. CPU LOAD (Total)
+        self.sensor_pointers['cpu_load'] = self._find_sensor('Cpu', 'Load', 'Total')
         
-        output = subprocess.check_output(
-            ["powershell", "-NoProfile", "-Command", cmd], 
-            startupinfo=startupinfo,
-            creationflags=0x08000000
-        ).decode().strip()
+        # 2. CPU TEMP (Try various sources)
+        cpu_temp = self._find_sensor('Cpu', 'Temperature', 'Tctl') or \
+                   self._find_sensor('Cpu', 'Temperature', 'Package') or \
+                   self._find_sensor('Cpu', 'Temperature', 'Core') or \
+                   self._find_sensor('SuperIO', 'Temperature', 'CPU')
+        self.sensor_pointers['cpu_temp'] = cpu_temp
+
+        # 3. GPU LOAD
+        self.sensor_pointers['gpu_load'] = self._find_sensor('Gpu', 'Load', 'Core')
+
+        # 4. GPU TEMP
+        self.sensor_pointers['gpu_temp'] = self._find_sensor('Gpu', 'Temperature', '')
+
+        # 5. GPU VRAM (Try various names)
+        gpu_mem = self._find_sensor('Gpu', 'SmallData', 'Memory Used') or \
+                  self._find_sensor('Gpu', 'SmallData', 'Memory') or \
+                  self._find_sensor('Gpu', 'SmallData', 'Dedicated')
+        self.sensor_pointers['gpu_mem'] = gpu_mem
         
-        # Parse output (Windows often returns multiple values)
-        lines = output.split('\r\n')
-        for line in lines:
-            if line.isdigit():
-                kelvin = int(line)
-                # Windows returns tenths of Kelvin (e.g. 3100 = 310.0 Kelvin)
-                celsius = (kelvin / 10.0) - 273.15
-                # Plausibility check
-                if celsius > 20 and celsius < 110: 
-                     return int(round(celsius))
-    except:
-        pass
-    return 0
+        print(f"Sensors found: {list(self.sensor_pointers.keys())}")
 
-# --- 4. DATA SOURCES ---
+    def update_hardware(self):
+        """ Called in loop: Updates only relevant hardware components """
+        if self.dll_loaded:
+            for hw in self.hardware_list:
+                hw.Update()
 
-def get_cpu_temp():
-    # 1. Try DLL (Most precise)
-    val = get_sensor_value("Cpu", "Temperature", "Tctl/Tdie") # Ryzen Standard
-    if val != "N/A" and val > 0: return val
+    def get_value(self, key):
+        # Special case: RAM (psutil is more efficient/simpler)
+        if key == 'ram':
+            mem = psutil.virtual_memory()
+            return {"percent": int(mem.percent), "gb": round(mem.used / (1024**3), 1)}
+        
+        # Special case: Network (psutil)
+        if key == 'net':
+            now = time.time()
+            io = psutil.net_io_counters()
+            duration = now - self.last_net_time
+            if duration <= 0: return 0
+            
+            bytes_sent = io.bytes_sent - self.last_net_io.bytes_sent
+            bytes_recv = io.bytes_recv - self.last_net_io.bytes_recv
+            mb_per_sec = ((bytes_sent + bytes_recv) / 1024 / 1024) / duration
+            
+            self.last_net_io = io
+            self.last_net_time = now
+            return round(mb_per_sec, 2)
 
-    val = get_sensor_value("Cpu", "Temperature", "Package") # Intel Standard
-    if val != "N/A" and val > 0: return val
-    
-    val = get_sensor_value("Cpu", "Temperature", "Core")
-    if val != "N/A" and val > 0: return val
+        # Standard DLL sensors
+        if key in self.sensor_pointers and self.sensor_pointers[key]:
+            val = self.sensor_pointers[key].Value
+            if val is not None:
+                if key == 'gpu_mem': return round(val / 1024, 1) # MB -> GB
+                if key == 'gpu_load': 
+                    # GPU data return object
+                    vram = 0
+                    if 'gpu_mem' in self.sensor_pointers and self.sensor_pointers['gpu_mem']:
+                        v = self.sensor_pointers['gpu_mem'].Value
+                        if v: vram = round(v / 1024, 1)
+                    return {"core": int(val), "vram_gb": vram}
+                
+                return int(round(val))
+        
+        # Fallbacks if DLL sensor is missing
+        if key == 'cpu_load': return int(psutil.cpu_percent(interval=0))
+        if key == 'cpu_temp': return self._get_wmi_temp() # Fallback WMI
+        if key == 'gpu_load': return {"core": 0, "vram_gb": 0}
+        
+        return 0
 
-    val = get_sensor_value("Cpu", "Temperature", "") # Any CPU Temp
-    if val != "N/A" and val > 0: return val
-    
-    # 2. Try Motherboard Sensors (SuperIO)
-    val = get_sensor_value("SuperIO", "Temperature", "CPU")
-    if val != "N/A" and val > 0: return val
-
-    # 3. LAST RESORT: Windows WMI (Fallback)
-    return get_wmi_temp()
-
-def get_cpu_load():
-    val = get_sensor_value("Cpu", "Load", "Total")
-    if val == "N/A": return int(round(psutil.cpu_percent(interval=0)))
-    return val
-
-def get_gpu_temp():
-    val = get_sensor_value("Gpu", "Temperature", "")
-    if val == "N/A": return 0
-    return val
-
-def get_gpu_data():
-    core = get_sensor_value("Gpu", "Load", "Core")
-    if core == "N/A": core = 0
-    
-    # Try various memory sensor names
-    vram_mb = get_sensor_value("Gpu", "SmallData", "Memory Used")
-    if vram_mb == "N/A": vram_mb = get_sensor_value("Gpu", "SmallData", "Memory")
-    if vram_mb == "N/A": vram_mb = get_sensor_value("Gpu", "SmallData", "Dedicated")
-    
-    if vram_mb == "N/A": vram_mb = 0
-    
-    return {
-        "core": core,
-        "vram_gb": round(vram_mb / 1024, 1) # Convert MB to GB
-    }
-
-def get_ram_data():
-    mem = psutil.virtual_memory()
-    return {
-    "percent": int(round(mem.percent)),
-      "gb": round(mem.used / (1024**3), 1)
-    }
-
-def get_net_speed():
-    global last_net_io, last_time
-    current_net_io = psutil.net_io_counters()
-    current_time = time.time()
-    
-    bytes_sent = current_net_io.bytes_sent - last_net_io.bytes_sent
-    bytes_recv = current_net_io.bytes_recv - last_net_io.bytes_recv
-    
-    duration = current_time - last_time
-    if duration <= 0: return 0 
-
-    mb_per_sec = ((bytes_sent + bytes_recv) / 1024 / 1024) / duration
-    last_net_io = current_net_io
-    last_time = current_time
-    return round(mb_per_sec, 2)
-
-# Initialize globals for network calculation
-last_net_io = psutil.net_io_counters()
-last_time = time.time()
-
-# --- 5. SENSOR LIST ---
-# These default titles act as keys for translation in the frontend
-sensor_list = [
-    Sensor("cpu", "CPU LOAD", "%", get_cpu_load, "text-red-500"),
-    Sensor("cpu_temp", "CPU TEMP", "°C", get_cpu_temp, "text-red-300"),
-    Sensor("gpu", "GPU LOAD", "%", get_gpu_data, "text-green-500"),
-    Sensor("gpu_temp", "GPU TEMP", "°C", get_gpu_temp, "text-green-300"),
-    Sensor("ram", "RAM LOAD", "%", get_ram_data, "text-yellow-500"),
-    Sensor("net", "NET I/O", "MB/s", get_net_speed, "text-blue-500"),
-]
-
-def cleanup():
-    global computer
-    if computer:
+    def _get_wmi_temp(self):
+        """ Fallback for CPU Temp """
         try:
-            computer.Close()
+            cmd = "Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature | Select-Object -ExpandProperty CurrentTemperature"
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            output = subprocess.check_output(["powershell", "-NoProfile", "-Command", cmd], startupinfo=startupinfo, creationflags=0x08000000).decode().strip()
+            lines = output.split('\r\n')
+            for line in lines:
+                if line.isdigit():
+                    c = (int(line) / 10.0) - 273.15
+                    if 20 < c < 110: return int(round(c))
         except:
             pass
+        return 0
+    
+    def cleanup(self):
+        if self.computer:
+            try: self.computer.Close()
+            except: pass
+
+# --- 3. INSTANCE & API ---
+monitor = HardwareMonitor()
+
+def get_data_for_api():
+    monitor.update_hardware() # Refresh hardware state
+    return {
+        "cpu": monitor.get_value('cpu_load'),
+        "cpu_temp": monitor.get_value('cpu_temp'),
+        "gpu": monitor.get_value('gpu_load'),
+        "gpu_temp": monitor.get_value('gpu_temp'),
+        "ram": monitor.get_value('ram'),
+        "net": monitor.get_value('net')
+    }
+
+def cleanup():
+    monitor.cleanup()
+
+# Definition for frontend generation (colors etc.)
+sensor_list = [
+    Sensor("cpu", "CPU LOAD", "%", "cpu", "text-red-500"),
+    Sensor("cpu_temp", "CPU TEMP", "°C", "cpu_temp", "text-red-300"),
+    Sensor("gpu", "GPU LOAD", "%", "gpu", "text-green-500"),
+    Sensor("gpu_temp", "GPU TEMP", "°C", "gpu_temp", "text-green-300"),
+    Sensor("ram", "RAM LOAD", "%", "ram", "text-yellow-500"),
+    Sensor("net", "NET I/O", "MB/s", "net", "text-blue-500"),
+]
